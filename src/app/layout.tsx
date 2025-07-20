@@ -11,7 +11,7 @@ const poppins = Poppins({
 
 
 export const metadata: Metadata = {
-  title: 'IntelliNews Explorer',
+  title: 'IntelliNews',
   description: 'Your daily dose of news, curated for you.',
 };
 

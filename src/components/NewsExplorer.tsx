@@ -58,7 +58,7 @@ function NewsExplorerContent() {
       
       if (!isLoadMore) {
         setIsLoading(true);
-        setNews([]);
+        // setNews([]); // This line is causing issues, removing it as handleSelectTopic handles reset.
       } else {
         setIsLoadingMore(true);
       }
@@ -222,7 +222,7 @@ function NewsExplorerContent() {
         <SidebarHeader className="p-4 border-b">
           <h1 className="text-2xl font-bold text-primary flex items-center gap-2">
             <Newspaper className="w-7 h-7" />
-            IntelliNews Explorer
+            IntelliNews
           </h1>
         </SidebarHeader>
         <SidebarContent>
