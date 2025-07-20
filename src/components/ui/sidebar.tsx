@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
-import { Sheet, SheetContent } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
   Tooltip,
@@ -176,6 +176,12 @@ const Sidebar = React.forwardRef<
     ref
   ) => {
     const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
+    
+    // Find the SidebarHeader to extract the title for mobile sheet.
+    const sidebarHeader = React.Children.toArray(children).find(
+      (child) => React.isValidElement(child) && child.type === SidebarHeader
+    ) as React.ReactElement | undefined;
+
 
     if (collapsible === "none") {
       return (
@@ -206,7 +212,23 @@ const Sidebar = React.forwardRef<
             }
             side={side}
           >
-            <div className="flex h-full w-full flex-col">{children}</div>
+            <div className="flex h-full w-full flex-col">
+              {sidebarHeader?.props?.children && (
+                <SheetTitle className="sr-only">
+                  {/* Extract text from header for screen readers */}
+                  {React.Children.toArray(sidebarHeader.props.children)
+                    .map(child => {
+                      if (typeof child === 'string') return child;
+                      if (React.isValidElement(child) && typeof child.props.children === 'string') {
+                        return child.props.children;
+                      }
+                      return '';
+                    })
+                    .join(' ')}
+                </SheetTitle>
+              )}
+              {children}
+            </div>
           </SheetContent>
         </Sheet>
       )
