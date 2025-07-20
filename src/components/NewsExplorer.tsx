@@ -23,7 +23,6 @@ function NewsExplorerContent() {
   const [suggestedNews, setSuggestedNews] = useState<NewsArticle[]>([]);
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [selectedAiTopic, setSelectedAiTopic] = useState<string | null>(null);
-  const [page, setPage] = useState(1);
   const [nextPageOffset, setNextPageOffset] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -61,10 +60,10 @@ function NewsExplorerContent() {
 
     try {
       let url = '';
-      let currentPage = isLoadMore ? page + 1 : 1;
 
       if (selectedTopic) {
-        url = `/api/news/topic-news/${selectedTopic}?lang=${lang}&page=${isLoadMore ? page : 1}`;
+        const pageParam = isLoadMore && nextPageOffset ? nextPageOffset : '1';
+        url = `/api/news/topic-news/${selectedTopic}?lang=${lang}&page=${pageParam}`;
       } else {
         const offsetParam = isLoadMore && nextPageOffset ? `&news_offset=${nextPageOffset}` : '';
         url = `/api/news/get-news?lang=${lang}${offsetParam}`;
@@ -81,14 +80,16 @@ function NewsExplorerContent() {
           title: 'No articles found',
           description: `No articles found for this topic. Showing Top Stories instead.`,
         });
-        setSelectedTopic(null); // This will trigger a re-fetch in useEffect
+        setSelectedTopic(null);
         return;
       }
 
       setNews(prevNews => isLoadMore ? [...prevNews, ...newArticles] : newArticles);
 
       if (selectedTopic) {
-        setHasMore('next_page_hash' in json.data && !!json.data.next_page_hash);
+        const nextHash = 'next_page_hash' in json.data ? json.data.next_page_hash : null;
+        setNextPageOffset(nextHash);
+        setHasMore(!!nextHash);
       } else {
         const nextOffset = ('min_news_id' in json.data) ? json.data.min_news_id : null;
         setNextPageOffset(nextOffset);
@@ -101,12 +102,13 @@ function NewsExplorerContent() {
       setIsLoading(false);
       setIsLoadingMore(false);
     }
-  }, [lang, nextPageOffset, page, selectedAiTopic, selectedTopic, toast]);
+  }, [lang, nextPageOffset, selectedAiTopic, selectedTopic, toast]);
 
 
   useEffect(() => {
     fetchData(false);
-  }, [lang, selectedTopic, selectedAiTopic, fetchData]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lang, selectedTopic, selectedAiTopic]);
 
 
   useEffect(() => {
@@ -157,7 +159,6 @@ function NewsExplorerContent() {
       setReadingHistory(prev => [...new Set([historyTopic, ...prev])].slice(0, 10));
     }
     setNews([]);
-    setPage(1);
     setNextPageOffset(null);
     setSelectedAiTopic(null);
     setSuggestedNews([]);
@@ -165,7 +166,6 @@ function NewsExplorerContent() {
   };
 
   const handleSelectSuggestedTopic = (topic: string) => {
-    setPage(1);
     setNextPageOffset(null);
     setIsLoading(true);
     setSelectedTopic(null);
@@ -205,7 +205,6 @@ function NewsExplorerContent() {
     if (newLang !== lang) {
         setNews([]);
         setLang(newLang);
-        setPage(1);
         setNextPageOffset(null);
         setTrendingTopics([]);
         setReadingHistory([]);
@@ -214,12 +213,7 @@ function NewsExplorerContent() {
     }
   };
 
-  const handleLoadMoreTopics = () => {
-    if (isLoadingMore) return;
-    setPage(prev => prev + 1);
-  };
-  
-  const handleLoadMoreTopStories = () => {
+  const handleLoadMore = () => {
     if (isLoadingMore) return;
     fetchData(true);
   };
@@ -286,8 +280,7 @@ function NewsExplorerContent() {
             isLoading={isLoading}
             isLoadingMore={isLoadingMore}
             hasMore={hasMore}
-            onLoadMoreTopics={handleLoadMoreTopics}
-            onLoadMoreTopStories={handleLoadMoreTopStories}
+            onLoadMore={handleLoadMore}
             isTopStories={!selectedTopic && !selectedAiTopic}
           />
         </main>
@@ -306,5 +299,3 @@ export default function NewsExplorer() {
     </div>
   );
 }
-
-    

@@ -17,7 +17,9 @@ export async function GET(
   
   try {
     if (slugPath === 'get-news') {
-      const url = `${INSHORTS_API_URL}/${lang}/news?category=top_stories&max_limit=10&include_card_data=true`;
+      const newsOffset = searchParams.get('news_offset');
+      const offsetParam = newsOffset ? `&news_offset=${newsOffset}` : '';
+      const url = `${INSHORTS_API_URL}/${lang}/news?category=top_stories&max_limit=10&include_card_data=true${offsetParam}`;
       const response = await fetch(url, { cache: 'no-store' });
       if (!response.ok) throw new Error('Failed to fetch top stories');
       const data = await response.json();

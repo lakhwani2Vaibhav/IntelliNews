@@ -23,6 +23,7 @@ export interface TopicNewsResponseData {
 
 export interface GeneralNewsResponseData {
   news_list: NewsArticle[];
+  min_news_id?: string | null;
 }
 
 export interface TrendingTopicsResponseData {

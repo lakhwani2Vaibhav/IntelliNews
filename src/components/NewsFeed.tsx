@@ -12,12 +12,11 @@ interface NewsFeedProps {
   isLoading: boolean;
   isLoadingMore: boolean;
   hasMore: boolean;
-  onLoadMoreTopics: () => void;
-  onLoadMoreTopStories: () => void;
+  onLoadMore: () => void;
   isTopStories: boolean;
 }
 
-export default function NewsFeed({ news, isLoading, isLoadingMore, hasMore, onLoadMoreTopics, onLoadMoreTopStories, isTopStories }: NewsFeedProps) {
+export default function NewsFeed({ news, isLoading, isLoadingMore, hasMore, onLoadMore, isTopStories }: NewsFeedProps) {
   const observer = useRef<IntersectionObserver>();
   
   const lastElementRef = useCallback((node: HTMLDivElement) => {
@@ -26,12 +25,12 @@ export default function NewsFeed({ news, isLoading, isLoadingMore, hasMore, onLo
     
     observer.current = new IntersectionObserver(entries => {
       if (entries[0].isIntersecting && hasMore) {
-        onLoadMoreTopics();
+        onLoadMore();
       }
     });
 
     if (node) observer.current.observe(node);
-  }, [isLoadingMore, hasMore, onLoadMoreTopics, isTopStories]);
+  }, [isLoadingMore, hasMore, onLoadMore, isTopStories]);
   
   useEffect(() => {
     if (isTopStories && observer.current) {
@@ -66,11 +65,11 @@ export default function NewsFeed({ news, isLoading, isLoadingMore, hasMore, onLo
         })}
       </div>
       
-      {isLoadingMore && !isTopStories && <Loader />}
+      {isLoadingMore && <Loader />}
       
       {isTopStories && hasMore && (
         <div className="flex justify-center mt-8">
-          <Button onClick={onLoadMoreTopStories} disabled={isLoadingMore}>
+          <Button onClick={onLoadMore} disabled={isLoadingMore}>
             {isLoadingMore ? <Loader className="mr-2" /> : null}
             Load More
           </Button>
