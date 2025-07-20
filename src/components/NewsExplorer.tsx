@@ -58,6 +58,7 @@ function NewsExplorerContent() {
       
       if (!isLoadMore) {
         setIsLoading(true);
+        setNews([]);
       } else {
         setIsLoadingMore(true);
       }
@@ -191,6 +192,10 @@ function NewsExplorerContent() {
         setNews([]);
         setLang(newLang);
         setPage(1);
+        setTrendingTopics([]);
+        setReadingHistory([]);
+        setSelectedTopic(null);
+        setSelectedAiTopic(null);
     }
   };
 
@@ -217,7 +222,7 @@ function NewsExplorerContent() {
         <SidebarHeader className="p-4 border-b">
           <h1 className="text-2xl font-bold text-primary flex items-center gap-2">
             <Newspaper className="w-7 h-7" />
-            Inshorts Explorer
+            IntelliNews Explorer
           </h1>
         </SidebarHeader>
         <SidebarContent>
