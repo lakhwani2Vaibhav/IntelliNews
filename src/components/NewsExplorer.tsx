@@ -30,7 +30,6 @@ export default function NewsExplorer() {
   const [hasMore, setHasMore] = useState(true);
   const [readingHistory, setReadingHistory] = useState<string[]>([]);
   const [isAiNewsLoading, setIsAiNewsLoading] = useState(false);
-  const [newsCache, setNewsCache] = useState<Record<string, NewsArticle[]>>({});
 
   const { toast } = useToast();
 
@@ -38,7 +37,7 @@ export default function NewsExplorer() {
     try {
       const res = await fetch(`/api/news/trending-list?lang=${currentLang}`);
       if (!res.ok) throw new Error('Failed to fetch trending topics');
-      const json: ApiResponse<TrendingTopicsResponseData> = await res.json();
+      const json: ApiResponse<{ trending_tags: TrendingTopic[] }> = await res.json();
       setTrendingTopics(json.data.trending_tags || []);
     } catch (error) {
         toast({ variant: 'destructive', title: 'Error', description: 'Could not load trending topics.' });
@@ -56,19 +55,12 @@ export default function NewsExplorer() {
 
     const fetchNews = async () => {
         const isLoadMore = page > 1;
-        const cacheKey = `${lang}-${selectedTopic || 'top'}-${page}`;
-
-        if (!isLoadMore && newsCache[cacheKey]) {
-            setNews(newsCache[cacheKey]);
-            setHasMore(!!selectedTopic);
-            setIsLoading(false);
-            return;
-        }
-
+        
         if (isLoadMore) {
             setIsLoadingMore(true);
         } else {
             setIsLoading(true);
+            setNews([]);
         }
 
         try {
@@ -84,16 +76,7 @@ export default function NewsExplorer() {
             const json: ApiResponse<GeneralNewsResponseData | TopicNewsResponseData> = await res.json();
             const newArticles = json.data.news_list || [];
             
-            if (isLoadMore) {
-                const combinedArticles = [...news, ...newArticles];
-                setNews(combinedArticles);
-                const newCacheKey = `${lang}-${selectedTopic || 'top'}-${page -1}`;
-                setNewsCache(prev => ({...prev, [newCacheKey]: news, [cacheKey]: combinedArticles }));
-            } else {
-                setNews(newArticles);
-                setNewsCache(prev => ({...prev, [cacheKey]: newArticles }));
-            }
-
+            setNews(prevNews => isLoadMore ? [...prevNews, ...newArticles] : newArticles);
             setHasMore(newArticles.length > 0 && !!selectedTopic);
         } catch (error) {
             if ((error as Error).name !== 'AbortError') {
@@ -112,7 +95,6 @@ export default function NewsExplorer() {
     return () => {
         controller.abort();
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedTopic, page, lang, selectedAiTopic, toast]);
 
   useEffect(() => {
@@ -197,7 +179,7 @@ export default function NewsExplorer() {
   const handleSetLang = (newLang: 'en' | 'hi') => {
     if (newLang !== lang) {
         setLang(newLang);
-        // Page reset is now handled implicitly by the main useEffect dependencies
+        setPage(1);
     }
   };
 
