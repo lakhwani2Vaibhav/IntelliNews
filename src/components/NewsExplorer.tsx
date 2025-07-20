@@ -57,10 +57,10 @@ function NewsExplorerContent() {
     const fetchNews = async () => {
       const isLoadMore = page > 1 || (!!nextPageOffset && !selectedTopic);
       
-      if (!isLoadMore) {
-        setIsLoading(true);
-      } else {
+      if (isLoadMore) {
         setIsLoadingMore(true);
+      } else {
+        setIsLoading(true);
       }
       
       try {
@@ -227,14 +227,7 @@ function NewsExplorerContent() {
 
   const handleLoadMore = () => {
     if (isLoadingMore) return;
-
-    if (selectedTopic) {
-      setPage(prevPage => prevPage + 1);
-    } else {
-      // For top stories, useEffect handles fetching with nextPageOffset
-      // This click is just to trigger the loading state and effect
-      setIsLoadingMore(true);
-    }
+    setPage(prevPage => prevPage + 1);
   };
   
   const getHeaderTitle = () => {

@@ -5,6 +5,7 @@ import type { NewsArticle } from '@/lib/types';
 import NewsCard from './NewsCard';
 import { Loader } from '@/components/ui/loader';
 import { NewsCardSkeleton } from './NewsCardSkeleton';
+import { Button } from './ui/button';
 
 interface NewsFeedProps {
   news: NewsArticle[];
@@ -12,12 +13,14 @@ interface NewsFeedProps {
   isLoadingMore: boolean;
   hasMore: boolean;
   onLoadMore: () => void;
+  isTopStories: boolean;
 }
 
-export default function NewsFeed({ news, isLoading, isLoadingMore, hasMore, onLoadMore }: NewsFeedProps) {
+export default function NewsFeed({ news, isLoading, isLoadingMore, hasMore, onLoadMore, isTopStories }: NewsFeedProps) {
   const observer = useRef<IntersectionObserver>();
+  
   const lastElementRef = useCallback((node: HTMLDivElement) => {
-    if (isLoading) return;
+    if (isLoading || isTopStories) return; // Only observe for non-top-stories
     if (observer.current) observer.current.disconnect();
     observer.current = new IntersectionObserver(entries => {
       if (entries[0].isIntersecting && hasMore) {
@@ -25,7 +28,7 @@ export default function NewsFeed({ news, isLoading, isLoadingMore, hasMore, onLo
       }
     });
     if (node) observer.current.observe(node);
-  }, [isLoading, hasMore, onLoadMore]);
+  }, [isLoading, hasMore, onLoadMore, isTopStories]);
 
   if (isLoading) {
     return (
@@ -43,7 +46,7 @@ export default function NewsFeed({ news, isLoading, isLoadingMore, hasMore, onLo
     <>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {news.map((article, index) => {
-          if (news.length === index + 1) {
+          if (news.length === index + 1 && !isTopStories) {
             return (
               <div ref={lastElementRef} key={article.hash_id}>
                 <NewsCard article={article} />
@@ -53,7 +56,17 @@ export default function NewsFeed({ news, isLoading, isLoadingMore, hasMore, onLo
           return <NewsCard key={article.hash_id} article={article} />;
         })}
       </div>
+      
       {isLoadingMore && <Loader />}
+      
+      {isTopStories && hasMore && !isLoadingMore && (
+        <div className="flex justify-center mt-8">
+          <Button onClick={onLoadMore} disabled={isLoadingMore}>
+            Load More
+          </Button>
+        </div>
+      )}
+
       {!hasMore && news.length > 0 && (
         <p className="text-center text-muted-foreground py-4">You've reached the end!</p>
       )}
