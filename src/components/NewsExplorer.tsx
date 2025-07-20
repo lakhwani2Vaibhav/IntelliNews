@@ -30,19 +30,18 @@ export default function NewsExplorer() {
   const [hasMore, setHasMore] = useState(true);
   const [readingHistory, setReadingHistory] = useState<string[]>([]);
   const [isAiNewsLoading, setIsAiNewsLoading] = useState(false);
+  const [newsCache, setNewsCache] = useState<Record<string, NewsArticle[]>>({});
 
   const { toast } = useToast();
 
-  const fetchTrendingTopics = useCallback(async (currentLang: 'en' | 'hi', controller?: AbortController) => {
+  const fetchTrendingTopics = useCallback(async (currentLang: 'en' | 'hi') => {
     try {
-      const res = await fetch(`/api/news/trending-list?lang=${currentLang}`, { signal: controller?.signal });
+      const res = await fetch(`/api/news/trending-list?lang=${currentLang}`);
       if (!res.ok) throw new Error('Failed to fetch trending topics');
       const json: ApiResponse<TrendingTopicsResponseData> = await res.json();
       setTrendingTopics(json.data.trending_tags || []);
     } catch (error) {
-      if ((error as Error).name !== 'AbortError') {
         toast({ variant: 'destructive', title: 'Error', description: 'Could not load trending topics.' });
-      }
     }
   }, [toast]);
 
@@ -51,18 +50,25 @@ export default function NewsExplorer() {
   }, [lang, fetchTrendingTopics]);
   
   useEffect(() => {
-    // This effect handles fetching real news when topic, page or language changes.
     if (selectedAiTopic) return;
-    
+
     const controller = new AbortController();
 
     const fetchNews = async () => {
         const isLoadMore = page > 1;
+        const cacheKey = `${lang}-${selectedTopic || 'top'}-${page}`;
+
+        if (!isLoadMore && newsCache[cacheKey]) {
+            setNews(newsCache[cacheKey]);
+            setHasMore(!!selectedTopic);
+            setIsLoading(false);
+            return;
+        }
+
         if (isLoadMore) {
             setIsLoadingMore(true);
         } else {
             setIsLoading(true);
-            setNews([]);
         }
 
         try {
@@ -78,7 +84,16 @@ export default function NewsExplorer() {
             const json: ApiResponse<GeneralNewsResponseData | TopicNewsResponseData> = await res.json();
             const newArticles = json.data.news_list || [];
             
-            setNews(prev => isLoadMore ? [...prev, ...newArticles] : newArticles);
+            if (isLoadMore) {
+                const combinedArticles = [...news, ...newArticles];
+                setNews(combinedArticles);
+                const newCacheKey = `${lang}-${selectedTopic || 'top'}-${page -1}`;
+                setNewsCache(prev => ({...prev, [newCacheKey]: news, [cacheKey]: combinedArticles }));
+            } else {
+                setNews(newArticles);
+                setNewsCache(prev => ({...prev, [cacheKey]: newArticles }));
+            }
+
             setHasMore(newArticles.length > 0 && !!selectedTopic);
         } catch (error) {
             if ((error as Error).name !== 'AbortError') {
@@ -97,10 +112,10 @@ export default function NewsExplorer() {
     return () => {
         controller.abort();
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedTopic, page, lang, selectedAiTopic, toast]);
 
   useEffect(() => {
-    // Fetch suggested news when reading history changes, but only for top stories view
     if (readingHistory.length > 0 && !selectedTopic && !selectedAiTopic) {
       setIsAiNewsLoading(true);
       generateSuggestedNews({
@@ -122,12 +137,11 @@ export default function NewsExplorer() {
         setSuggestedNews(formattedNews);
       }).catch(error => {
         console.error("Failed to generate suggested news:", error);
-        // Don't show a toast for this, it's a background feature
       }).finally(() => {
         setIsAiNewsLoading(false);
       });
     } else if (!selectedTopic && !selectedAiTopic) {
-      setSuggestedNews([]); // Clear suggestions if history is cleared
+      setSuggestedNews([]); 
     }
   }, [readingHistory, selectedTopic, selectedAiTopic]);
 
@@ -183,7 +197,7 @@ export default function NewsExplorer() {
   const handleSetLang = (newLang: 'en' | 'hi') => {
     if (newLang !== lang) {
         setLang(newLang);
-        setPage(1);
+        // Page reset is now handled implicitly by the main useEffect dependencies
     }
   };
 
