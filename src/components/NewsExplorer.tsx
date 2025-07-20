@@ -8,6 +8,7 @@ import NewsFeed from '@/components/NewsFeed';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import TrendingTopics from '@/components/TrendingTopics';
 import SuggestedNews from '@/components/SuggestedNews';
+import SuggestedTopics from '@/components/SuggestedTopics';
 import { Newspaper, Flame } from 'lucide-react';
 
 export default function NewsExplorer() {
@@ -40,6 +41,7 @@ export default function NewsExplorer() {
         setIsLoadingMore(true);
     } else {
         setIsLoading(true);
+        setNews([]); 
     }
 
     try {
@@ -64,39 +66,49 @@ export default function NewsExplorer() {
       setIsLoadingMore(false);
     }
   }, [toast]);
-
+  
   useEffect(() => {
     startTransition(() => {
-      fetchTrendingTopics(lang);
-      // When language changes, clear news and reset to page 1 for the new language
+      setIsLoading(true);
       setNews([]);
-      setPage(1);
+      fetchTrendingTopics(lang);
       fetchNews(selectedTopic, 1, lang, false);
+      setPage(1);
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lang]);
 
+
   useEffect(() => {
-    // This effect handles fetching news when topic or page changes, but not language
-    if (!isPending) { // Don't run this if a language change is in progress
-        fetchNews(selectedTopic, page, lang, page > 1);
-    }
+    fetchNews(selectedTopic, page, lang, page > 1);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedTopic, page]);
 
 
   const handleSelectTopic = (topic: string) => {
-    // This is for user-initiated topic selection
     startTransition(() => {
-        setPage(1); // Reset page to 1 for new topic
+        setPage(1); 
         if (topic === selectedTopic) {
-            setSelectedTopic(null); // Deselect if same topic is clicked
+            setSelectedTopic(null);
         } else {
             setSelectedTopic(topic);
             const topicObject = trendingTopics.find(t => t.tag === topic);
             const historyTopic = topicObject ? topicObject.label : topic;
             setReadingHistory(prev => [...new Set([historyTopic, ...prev])].slice(0, 10));
         }
+    });
+  };
+
+  const handleSelectSuggestedTopic = (topic: string) => {
+    const newTopic: TrendingTopic = { label: topic, tag: topic.toLowerCase().replace(/\s+/g, '-') };
+    
+    startTransition(() => {
+      // Add to trending topics if it doesn't exist
+      if (!trendingTopics.find(t => t.tag === newTopic.tag)) {
+        setTrendingTopics(prev => [newTopic, ...prev]);
+      }
+      // Select the topic
+      handleSelectTopic(newTopic.tag);
     });
   };
 
@@ -133,6 +145,7 @@ export default function NewsExplorer() {
                 onSelectTopic={handleSelectTopic}
               />
             </SidebarGroup>
+            <SuggestedTopics readingHistory={readingHistory} onSelectTopic={handleSelectSuggestedTopic} />
             <SuggestedNews readingHistory={readingHistory} />
           </SidebarContent>
         </Sidebar>
