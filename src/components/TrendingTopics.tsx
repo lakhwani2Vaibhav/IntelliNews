@@ -29,7 +29,7 @@ export default function TrendingTopics({ topics, selectedTopic, onSelectTopic }:
           <Button
             variant={selectedTopic === topic.tag ? 'secondary' : 'ghost'}
             className="w-full justify-start"
-            onClick={() => onSelectTopic(topic.tag)}
+            onClick={() => onSelectTopic(topic.topic_name)}
           >
             {topic.tag}
           </Button>
