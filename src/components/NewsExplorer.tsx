@@ -127,19 +127,19 @@ export default function NewsExplorer() {
   }, [readingHistory, selectedTopic, selectedAiTopic]);
 
 
-  const handleSelectTopic = (topic: string) => {
-    setNews([]); // Explicitly clear news to prevent duplicates
-    setPage(1); 
+  const handleSelectTopic = (topicTag: string) => {
+    setNews([]);
+    setPage(1);
     setSelectedAiTopic(null);
     setSuggestedNews([]);
 
-    if (topic === selectedTopic) {
-        setSelectedTopic(null);
+    if (topicTag === selectedTopic) {
+      setSelectedTopic(null);
     } else {
-        setSelectedTopic(topic);
-        const topicObject = trendingTopics.find(t => t.tag === topic);
-        const historyTopic = topicObject ? topicObject.label : topic;
-        setReadingHistory(prev => [...new Set([historyTopic, ...prev])].slice(0, 10));
+      setSelectedTopic(topicTag);
+      const topicObject = trendingTopics.find(t => t.tag === topicTag);
+      const historyTopic = topicObject ? topicObject.label : topicTag;
+      setReadingHistory(prev => [...new Set([historyTopic, ...prev])].slice(0, 10));
     }
   };
 
@@ -180,7 +180,7 @@ export default function NewsExplorer() {
 
   const handleSetLang = (newLang: 'en' | 'hi') => {
     if (newLang !== lang) {
-        setNews([]); // Explicitly clear news on language change
+        setNews([]);
         setLang(newLang);
         setPage(1);
     }
