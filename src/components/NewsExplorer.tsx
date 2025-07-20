@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useTransition } from 'react';
 import type { NewsArticle, TrendingTopic, ApiResponse, GeneralNewsResponseData, TrendingTopicsResponseData, TopicNewsResponseData } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
 import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarInset, SidebarGroup, SidebarGroupLabel, SidebarTrigger } from '@/components/ui/sidebar';
 import NewsFeed from '@/components/NewsFeed';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import TrendingTopics from '@/components/TrendingTopics';
-import SuggestedTopics from '@/components/SuggestedTopics';
+import SuggestedNews from '@/components/SuggestedNews';
 import { Newspaper, Flame } from 'lucide-react';
 
 export default function NewsExplorer() {
@@ -22,6 +22,7 @@ export default function NewsExplorer() {
   const [readingHistory, setReadingHistory] = useState<string[]>([]);
 
   const { toast } = useToast();
+  const [isPending, startTransition] = useTransition();
 
   const fetchTrendingTopics = useCallback(async (currentLang: 'en' | 'hi') => {
     try {
@@ -39,7 +40,6 @@ export default function NewsExplorer() {
         setIsLoadingMore(true);
     } else {
         setIsLoading(true);
-        setNews([]);
     }
 
     try {
@@ -66,22 +66,38 @@ export default function NewsExplorer() {
   }, [toast]);
 
   useEffect(() => {
-    fetchTrendingTopics(lang);
-    fetchNews(selectedTopic, page, lang, page > 1);
+    startTransition(() => {
+      fetchTrendingTopics(lang);
+      // When language changes, clear news and reset to page 1 for the new language
+      setNews([]);
+      setPage(1);
+      fetchNews(selectedTopic, 1, lang, false);
+    });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lang, selectedTopic, page]);
+  }, [lang]);
+
+  useEffect(() => {
+    // This effect handles fetching news when topic or page changes, but not language
+    if (!isPending) { // Don't run this if a language change is in progress
+        fetchNews(selectedTopic, page, lang, page > 1);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedTopic, page]);
 
 
   const handleSelectTopic = (topic: string) => {
-    setPage(1); // Reset page to 1 for new topic
-    if (topic === selectedTopic) {
-        setSelectedTopic(null);
-    } else {
-        setSelectedTopic(topic);
-        const topicObject = trendingTopics.find(t => t.tag === topic);
-        const historyTopic = topicObject ? topicObject.label : topic;
-        setReadingHistory(prev => [...new Set([historyTopic, ...prev])].slice(0, 10));
-    }
+    // This is for user-initiated topic selection
+    startTransition(() => {
+        setPage(1); // Reset page to 1 for new topic
+        if (topic === selectedTopic) {
+            setSelectedTopic(null); // Deselect if same topic is clicked
+        } else {
+            setSelectedTopic(topic);
+            const topicObject = trendingTopics.find(t => t.tag === topic);
+            const historyTopic = topicObject ? topicObject.label : topic;
+            setReadingHistory(prev => [...new Set([historyTopic, ...prev])].slice(0, 10));
+        }
+    });
   };
 
   const handleSetLang = (newLang: 'en' | 'hi') => {
@@ -117,7 +133,7 @@ export default function NewsExplorer() {
                 onSelectTopic={handleSelectTopic}
               />
             </SidebarGroup>
-            <SuggestedTopics readingHistory={readingHistory} onSelectTopic={handleSelectTopic} />
+            <SuggestedNews readingHistory={readingHistory} />
           </SidebarContent>
         </Sidebar>
         <SidebarInset>
