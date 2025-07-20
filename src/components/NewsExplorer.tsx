@@ -125,7 +125,7 @@ function NewsExplorerContent() {
       setIsAiNewsLoading(true);
       generateSuggestedNews({
         readingHistory: readingHistory.join(', '),
-        numberOfArticles: 4,
+        numberOfArticles: 2,
         language: lang === 'hi' ? 'Hindi' : 'English',
       }).then(result => {
         const formattedNews: NewsArticle[] = result.suggestedNews.map(article => ({
@@ -286,7 +286,7 @@ function NewsExplorerContent() {
                 <Sparkles className="w-6 h-6 text-primary" />
                 <h2 className="text-xl font-bold">Suggested For You</h2>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {suggestedNews.map(article => (
                   <NewsCard key={article.hash_id} article={article} />
                 ))}

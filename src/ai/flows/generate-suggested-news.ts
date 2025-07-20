@@ -24,7 +24,7 @@ const GenerateSuggestedNewsInputSchema = z.object({
     .describe("The user's reading history, as a string of comma-separated topics."),
   numberOfArticles: z
     .number()
-    .default(3)
+    .default(2)
     .describe('The number of news articles to generate.'),
   language: z.string().default('English').describe('The language for the generated news articles (e.g., "English", "Hindi").'),
 });
