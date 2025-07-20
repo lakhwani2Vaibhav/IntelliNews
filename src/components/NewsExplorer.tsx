@@ -56,9 +56,7 @@ export default function NewsExplorer() {
     const fetchNews = async () => {
       const isLoadMore = page > 1;
       
-      // Reset news list if it's a new topic/language, but not for pagination
       if (!isLoadMore) {
-        setNews([]); 
         setIsLoading(true);
       } else {
         setIsLoadingMore(true);
@@ -130,9 +128,11 @@ export default function NewsExplorer() {
 
 
   const handleSelectTopic = (topic: string) => {
+    setNews([]); // Explicitly clear news to prevent duplicates
     setPage(1); 
     setSelectedAiTopic(null);
     setSuggestedNews([]);
+
     if (topic === selectedTopic) {
         setSelectedTopic(null);
     } else {
@@ -180,6 +180,7 @@ export default function NewsExplorer() {
 
   const handleSetLang = (newLang: 'en' | 'hi') => {
     if (newLang !== lang) {
+        setNews([]); // Explicitly clear news on language change
         setLang(newLang);
         setPage(1);
     }
