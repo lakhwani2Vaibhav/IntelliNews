@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { NewsArticle, TrendingTopic, ApiResponse, GeneralNewsResponseData, TrendingTopicsResponseData, TopicNewsResponseData } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
-import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarInset, SidebarGroup, SidebarGroupLabel } from '@/components/ui/sidebar';
+import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarInset, SidebarGroup, SidebarGroupLabel, SidebarTrigger } from '@/components/ui/sidebar';
 import NewsFeed from '@/components/NewsFeed';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import TrendingTopics from '@/components/TrendingTopics';
@@ -23,12 +23,23 @@ export default function NewsExplorer() {
 
   const { toast } = useToast();
 
+  const fetchTrendingTopics = useCallback(async (currentLang: 'en' | 'hi') => {
+    try {
+      const res = await fetch(`/api/news/trending-list?lang=${currentLang}`);
+      if (!res.ok) throw new Error('Failed to fetch trending topics');
+      const json: ApiResponse<TrendingTopicsResponseData> = await res.json();
+      setTrendingTopics(json.data.trending_tags || []);
+    } catch (error) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Could not load trending topics.' });
+    }
+  }, [toast]);
+
   const fetchNews = useCallback(async (topic: string | null, newPage: number, currentLang: 'en' | 'hi', isLoadMore: boolean) => {
     if (isLoadMore) {
         setIsLoadingMore(true);
     } else {
         setIsLoading(true);
-        setNews([]); // Clear news immediately on new fetch
+        setNews([]);
     }
 
     try {
@@ -54,30 +65,16 @@ export default function NewsExplorer() {
     }
   }, [toast]);
 
-  // Effect for fetching trending topics when language changes
   useEffect(() => {
-    const fetchTrendingTopics = async () => {
-      try {
-        const res = await fetch(`/api/news/trending-list?lang=${lang}`);
-        if (!res.ok) throw new Error('Failed to fetch trending topics');
-        const json: ApiResponse<TrendingTopicsResponseData> = await res.json();
-        setTrendingTopics(json.data.trending_tags || []);
-      } catch (error) {
-        toast({ variant: 'destructive', title: 'Error', description: 'Could not load trending topics.' });
-      }
-    };
-    fetchTrendingTopics();
-  }, [lang, toast]);
-
-  // Effect for fetching news when topic, language, or page changes
-  useEffect(() => {
+    fetchTrendingTopics(lang);
     fetchNews(selectedTopic, page, lang, page > 1);
-  }, [selectedTopic, lang, page, fetchNews]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lang, selectedTopic, page]);
 
 
   const handleSelectTopic = (topic: string) => {
+    setPage(1); // Reset page to 1 for new topic
     if (topic === selectedTopic) {
-        // If the same topic is selected, treat it as a deselection
         setSelectedTopic(null);
     } else {
         setSelectedTopic(topic);
@@ -85,12 +82,12 @@ export default function NewsExplorer() {
         const historyTopic = topicObject ? topicObject.label : topic;
         setReadingHistory(prev => [...new Set([historyTopic, ...prev])].slice(0, 10));
     }
-    setPage(1); // Reset to page 1 for new topic or when deselecting
   };
 
   const handleSetLang = (newLang: 'en' | 'hi') => {
-    setPage(1); // Reset to page 1 when language changes
-    setLang(newLang);
+    if (newLang !== lang) {
+      setLang(newLang);
+    }
   };
 
   const handleLoadMore = () => {
@@ -125,9 +122,12 @@ export default function NewsExplorer() {
         </Sidebar>
         <SidebarInset>
           <header className="sticky top-0 z-10 flex items-center justify-between p-4 bg-background/80 backdrop-blur-sm border-b">
-             <h2 className="text-xl font-semibold text-foreground">
-                {selectedTopic ? `Showing results for "${selectedTopicLabel}"` : 'Top Stories'}
-             </h2>
+            <div className="flex items-center gap-2">
+               <SidebarTrigger className="md:hidden" />
+               <h2 className="text-lg md:text-xl font-semibold text-foreground truncate">
+                  {selectedTopic ? `Showing results for "${selectedTopicLabel}"` : 'Top Stories'}
+               </h2>
+            </div>
             <LanguageSwitcher lang={lang} setLang={handleSetLang} />
           </header>
           <main className="p-4 md:p-6">
