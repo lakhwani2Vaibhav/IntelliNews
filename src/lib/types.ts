@@ -8,6 +8,7 @@ export interface NewsArticle {
     author_name: string;
     created_at: number;
     shortened_url: string;
+    category?: string;
   };
 }
 
@@ -18,7 +19,6 @@ export interface TrendingTopic {
 
 export interface TopicNewsResponseData {
   news_list: NewsArticle[];
-  next_page_hash?: string | null;
 }
 
 export interface GeneralNewsResponseData {
