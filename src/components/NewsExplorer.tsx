@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useTransition } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { NewsArticle, TrendingTopic, ApiResponse, GeneralNewsResponseData, TopicNewsResponseData } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
 import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarInset, SidebarGroup, SidebarGroupLabel, SidebarTrigger } from '@/components/ui/sidebar';
@@ -32,98 +32,99 @@ export default function NewsExplorer() {
   const [isAiNewsLoading, setIsAiNewsLoading] = useState(false);
 
   const { toast } = useToast();
-  const [isPending, startTransition] = useTransition();
 
-  const fetchTrendingTopics = useCallback(async (currentLang: 'en' | 'hi') => {
+  const fetchTrendingTopics = useCallback(async (currentLang: 'en' | 'hi', controller?: AbortController) => {
     try {
-      const res = await fetch(`/api/news/trending-list?lang=${currentLang}`);
+      const res = await fetch(`/api/news/trending-list?lang=${currentLang}`, { signal: controller?.signal });
       if (!res.ok) throw new Error('Failed to fetch trending topics');
       const json: ApiResponse<TrendingTopicsResponseData> = await res.json();
       setTrendingTopics(json.data.trending_tags || []);
     } catch (error) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Could not load trending topics.' });
-    }
-  }, [toast]);
-
-  const fetchNews = useCallback(async (topic: string | null, newPage: number, currentLang: 'en' | 'hi', isLoadMore: boolean) => {
-    if (isLoadMore) {
-      setIsLoadingMore(true);
-    } else {
-      setIsLoading(true);
-      setNews([]); // Clear previous news
-    }
-
-    try {
-      let url = '';
-      if (topic) {
-        url = `/api/news/topic-news/${topic}?lang=${currentLang}&page=${newPage}`;
-      } else {
-        url = `/api/news/get-news?lang=${currentLang}`;
+      if ((error as Error).name !== 'AbortError') {
+        toast({ variant: 'destructive', title: 'Error', description: 'Could not load trending topics.' });
       }
-      const res = await fetch(url);
-      if (!res.ok) throw new Error('Failed to fetch news');
-      const json: ApiResponse<GeneralNewsResponseData | TopicNewsResponseData> = await res.json();
-      const newArticles = json.data.news_list || [];
-      
-      setNews(prev => isLoadMore ? [...prev, ...newArticles] : newArticles);
-      setHasMore(newArticles.length > 0);
-
-    } catch (error) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Could not load news articles.' });
-    } finally {
-      setIsLoading(false);
-      setIsLoadingMore(false);
     }
   }, [toast]);
 
   useEffect(() => {
-    startTransition(() => {
-        fetchTrendingTopics(lang);
-        fetchNews(selectedTopic, page, lang, page > 1);
-    });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lang]);
-
+    fetchTrendingTopics(lang);
+  }, [lang, fetchTrendingTopics]);
+  
   useEffect(() => {
-    // This effect handles fetching real news when topic or page changes.
-    // It will not run if an AI topic is selected.
+    // This effect handles fetching real news when topic, page or language changes.
     if (selectedAiTopic) return;
     
-    startTransition(() => {
-      fetchNews(selectedTopic, page, lang, page > 1);
-    });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedTopic, page]);
+    const controller = new AbortController();
+
+    const fetchNews = async () => {
+        const isLoadMore = page > 1;
+        if (isLoadMore) {
+            setIsLoadingMore(true);
+        } else {
+            setIsLoading(true);
+            setNews([]);
+        }
+
+        try {
+            let url = '';
+            if (selectedTopic) {
+                url = `/api/news/topic-news/${selectedTopic}?lang=${lang}&page=${page}`;
+            } else {
+                url = `/api/news/get-news?lang=${lang}`;
+            }
+            const res = await fetch(url, { signal: controller.signal });
+            if (!res.ok) throw new Error('Failed to fetch news');
+            
+            const json: ApiResponse<GeneralNewsResponseData | TopicNewsResponseData> = await res.json();
+            const newArticles = json.data.news_list || [];
+            
+            setNews(prev => isLoadMore ? [...prev, ...newArticles] : newArticles);
+            setHasMore(newArticles.length > 0 && !!selectedTopic);
+        } catch (error) {
+            if ((error as Error).name !== 'AbortError') {
+                toast({ variant: 'destructive', title: 'Error', description: 'Could not load news articles.' });
+            }
+        } finally {
+            if (!controller.signal.aborted) {
+                setIsLoading(false);
+                setIsLoadingMore(false);
+            }
+        }
+    };
+    
+    fetchNews();
+
+    return () => {
+        controller.abort();
+    };
+  }, [selectedTopic, page, lang, selectedAiTopic, toast]);
 
   useEffect(() => {
     // Fetch suggested news when reading history changes, but only for top stories view
     if (readingHistory.length > 0 && !selectedTopic && !selectedAiTopic) {
-      startTransition(async () => {
-        setIsAiNewsLoading(true);
-        try {
-          const result: GenerateSuggestedNewsOutput = await generateSuggestedNews({
-            readingHistory: readingHistory.join(', '),
-            numberOfArticles: 4,
-          });
-          const formattedNews: NewsArticle[] = result.suggestedNews.map(article => ({
-            hash_id: generateId(),
-            news_obj: {
-              title: article.title,
-              content: article.content,
-              author_name: article.author_name,
-              created_at: Math.floor(Date.now() / 1000),
-              image_url: `https://placehold.co/600x400.png`,
-              source_url: '#',
-              shortened_url: '',
-            }
-          }));
-          setSuggestedNews(formattedNews);
-        } catch (error) {
-          console.error("Failed to generate suggested news:", error);
-          // Don't show a toast for this, it's a background feature
-        } finally {
-          setIsAiNewsLoading(false);
-        }
+      setIsAiNewsLoading(true);
+      generateSuggestedNews({
+        readingHistory: readingHistory.join(', '),
+        numberOfArticles: 4,
+      }).then(result => {
+        const formattedNews: NewsArticle[] = result.suggestedNews.map(article => ({
+          hash_id: generateId(),
+          news_obj: {
+            title: article.title,
+            content: article.content,
+            author_name: article.author_name,
+            created_at: Math.floor(Date.now() / 1000),
+            image_url: `https://placehold.co/600x400.png`,
+            source_url: '#',
+            shortened_url: '',
+          }
+        }));
+        setSuggestedNews(formattedNews);
+      }).catch(error => {
+        console.error("Failed to generate suggested news:", error);
+        // Don't show a toast for this, it's a background feature
+      }).finally(() => {
+        setIsAiNewsLoading(false);
       });
     } else if (!selectedTopic && !selectedAiTopic) {
       setSuggestedNews([]); // Clear suggestions if history is cleared
@@ -132,33 +133,29 @@ export default function NewsExplorer() {
 
 
   const handleSelectTopic = (topic: string) => {
-    startTransition(() => {
-      setPage(1); 
-      setSelectedAiTopic(null);
-      setSuggestedNews([]); // Clear AI suggestions when a real topic is selected
-      if (topic === selectedTopic) {
+    setPage(1); 
+    setSelectedAiTopic(null);
+    setSuggestedNews([]);
+    if (topic === selectedTopic) {
         setSelectedTopic(null);
-      } else {
+    } else {
         setSelectedTopic(topic);
         const topicObject = trendingTopics.find(t => t.tag === topic);
         const historyTopic = topicObject ? topicObject.label : topic;
         setReadingHistory(prev => [...new Set([historyTopic, ...prev])].slice(0, 10));
-      }
-    });
+    }
   };
 
   const handleSelectSuggestedTopic = (topic: string) => {
-    startTransition(async () => {
-      setIsLoading(true);
-      setSelectedTopic(null);
-      setSelectedAiTopic(topic);
-      setNews([]);
-      setSuggestedNews([]);
-      setHasMore(false); // AI news is not paginated
+    setIsLoading(true);
+    setSelectedTopic(null);
+    setSelectedAiTopic(topic);
+    setNews([]);
+    setSuggestedNews([]);
+    setHasMore(false);
 
-      try {
-        const result: GenerateTopicNewsOutput = await generateTopicNews({ topic, numberOfArticles: 10 });
-        
+    generateTopicNews({ topic, numberOfArticles: 10 })
+      .then(result => {
         const formattedNews: NewsArticle[] = result.generatedNews.map(article => ({
           hash_id: generateId(),
           news_obj: {
@@ -172,19 +169,21 @@ export default function NewsExplorer() {
           }
         }));
         setNews(formattedNews);
-      } catch (error) {
+      })
+      .catch(error => {
         console.error("Failed to generate AI news for topic:", error);
         toast({ variant: "destructive", title: "AI Error", description: `Could not generate news for ${topic}.` });
         setNews([]);
-      } finally {
+      })
+      .finally(() => {
         setIsLoading(false);
-      }
-    });
+      });
   };
 
   const handleSetLang = (newLang: 'en' | 'hi') => {
     if (newLang !== lang) {
         setLang(newLang);
+        setPage(1);
     }
   };
 
