@@ -24,6 +24,7 @@ function NewsExplorerContent() {
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [selectedAiTopic, setSelectedAiTopic] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+  const [nextPageOffset, setNextPageOffset] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
@@ -54,11 +55,10 @@ function NewsExplorerContent() {
     const controller = new AbortController();
 
     const fetchNews = async () => {
-      const isLoadMore = page > 1;
+      const isLoadMore = page > 1 || (!!nextPageOffset && !selectedTopic);
       
       if (!isLoadMore) {
         setIsLoading(true);
-        // setNews([]); // This line is causing issues, removing it as handleSelectTopic handles reset.
       } else {
         setIsLoadingMore(true);
       }
@@ -68,16 +68,38 @@ function NewsExplorerContent() {
         if (selectedTopic) {
             url = `/api/news/topic-news/${selectedTopic}?lang=${lang}&page=${page}`;
         } else {
-            url = `/api/news/get-news?lang=${lang}`;
+            const offsetParam = nextPageOffset ? `&news_offset=${nextPageOffset}` : '';
+            url = `/api/news/get-news?lang=${lang}${offsetParam}`;
         }
+
         const res = await fetch(url, { signal: controller.signal });
         if (!res.ok) throw new Error('Failed to fetch news');
         
         const json: ApiResponse<GeneralNewsResponseData | TopicNewsResponseData> = await res.json();
         const newArticles = json.data.news_list || [];
+
+        if (page === 1 && selectedTopic && newArticles.length === 0) {
+          toast({
+            title: 'No articles found',
+            description: `No articles found for this topic. Showing Top Stories instead.`,
+          });
+          setSelectedTopic(null); // Fallback to top stories
+          setNews([]);
+          setPage(1);
+          setNextPageOffset(null);
+          return;
+        }
         
         setNews(prevNews => isLoadMore ? [...prevNews, ...newArticles] : newArticles);
-        setHasMore(newArticles.length > 0 && !!selectedTopic);
+        
+        if (selectedTopic) {
+          setHasMore('next_page_hash' in json.data && !!json.data.next_page_hash);
+        } else {
+          const nextOffset = ('min_news_id' in json.data) ? json.data.min_news_id : null;
+          setNextPageOffset(nextOffset);
+          setHasMore(!!nextOffset);
+        }
+
       } catch (error) {
           if ((error as Error).name !== 'AbortError') {
               toast({ variant: 'destructive', title: 'Error', description: 'Could not load news articles.' });
@@ -95,7 +117,8 @@ function NewsExplorerContent() {
     return () => {
         controller.abort();
     };
-  }, [selectedTopic, page, lang, selectedAiTopic, toast]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedTopic, page, lang, selectedAiTopic, nextPageOffset]);
 
   useEffect(() => {
     if (readingHistory.length > 0 && !selectedTopic && !selectedAiTopic) {
@@ -115,6 +138,7 @@ function NewsExplorerContent() {
             image_url: `https://placehold.co/600x400.png`,
             source_url: '#',
             shortened_url: '',
+            category: article.category,
           }
         }));
         setSuggestedNews(formattedNews);
@@ -137,6 +161,7 @@ function NewsExplorerContent() {
   const handleSelectTopic = (topicTag: string) => {
     setNews([]);
     setPage(1);
+    setNextPageOffset(null);
     setSelectedAiTopic(null);
     setSuggestedNews([]);
 
@@ -153,6 +178,7 @@ function NewsExplorerContent() {
 
   const handleSelectSuggestedTopic = (topic: string) => {
     setPage(1);
+    setNextPageOffset(null);
     setIsLoading(true);
     setSelectedTopic(null);
     setSelectedAiTopic(topic);
@@ -192,6 +218,7 @@ function NewsExplorerContent() {
         setNews([]);
         setLang(newLang);
         setPage(1);
+        setNextPageOffset(null);
         setTrendingTopics([]);
         setReadingHistory([]);
         setSelectedTopic(null);
@@ -200,11 +227,17 @@ function NewsExplorerContent() {
   };
 
   const handleLoadMore = () => {
-    if (!isLoadingMore && hasMore && selectedTopic && !selectedAiTopic) {
+    if (isLoadingMore) return;
+
+    if (selectedTopic) {
       setPage(prevPage => prevPage + 1);
+    } else {
+      // For top stories, useEffect handles fetching with nextPageOffset
+      // This click is just to trigger the loading state and effect
+      setIsLoadingMore(true);
     }
   };
-
+  
   const getHeaderTitle = () => {
     if (selectedAiTopic) {
       return `AI News for: "${selectedAiTopic}"`
@@ -266,8 +299,9 @@ function NewsExplorerContent() {
             news={news}
             isLoading={isLoading}
             isLoadingMore={isLoadingMore}
-            hasMore={!!selectedTopic && hasMore && !selectedAiTopic}
+            hasMore={hasMore}
             onLoadMore={handleLoadMore}
+            isTopStories={!selectedTopic && !selectedAiTopic}
           />
         </main>
       </SidebarInset>
@@ -285,3 +319,5 @@ export default function NewsExplorer() {
     </div>
   );
 }
+
+    
