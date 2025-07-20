@@ -7,15 +7,18 @@ import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarInset, 
 import NewsFeed from '@/components/NewsFeed';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import TrendingTopics from '@/components/TrendingTopics';
-import SuggestedNews from '@/components/SuggestedNews';
 import SuggestedTopics from '@/components/SuggestedTopics';
-import { Newspaper, Flame } from 'lucide-react';
+import { Newspaper, Flame, Sparkles } from 'lucide-react';
+import { generateTopicNews, type GenerateTopicNewsOutput } from '@/ai/flows/generate-topic-news';
+import { generateId } from '@/lib/utils';
+
 
 export default function NewsExplorer() {
   const [lang, setLang] = useState<'en' | 'hi'>('en');
   const [trendingTopics, setTrendingTopics] = useState<TrendingTopic[]>([]);
   const [news, setNews] = useState<NewsArticle[]>([]);
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
+  const [selectedAiTopic, setSelectedAiTopic] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -41,7 +44,6 @@ export default function NewsExplorer() {
         setIsLoadingMore(true);
     } else {
         setIsLoading(true);
-        setNews([]); 
     }
 
     try {
@@ -70,24 +72,29 @@ export default function NewsExplorer() {
   useEffect(() => {
     startTransition(() => {
       setIsLoading(true);
-      setNews([]);
       fetchTrendingTopics(lang);
-      fetchNews(selectedTopic, 1, lang, false);
-      setPage(1);
+      fetchNews(selectedTopic, page, lang, false);
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lang]);
 
 
   useEffect(() => {
-    fetchNews(selectedTopic, page, lang, page > 1);
+    // This effect handles fetching real news when topic or page changes.
+    // It will not run if an AI topic is selected.
+    if (selectedAiTopic) return;
+    
+    startTransition(() => {
+      fetchNews(selectedTopic, page, lang, page > 1);
+    });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedTopic, page]);
+  }, [selectedTopic, page, selectedAiTopic]);
 
 
   const handleSelectTopic = (topic: string) => {
     startTransition(() => {
         setPage(1); 
+        setSelectedAiTopic(null);
         if (topic === selectedTopic) {
             setSelectedTopic(null);
         } else {
@@ -100,15 +107,36 @@ export default function NewsExplorer() {
   };
 
   const handleSelectSuggestedTopic = (topic: string) => {
-    const newTopic: TrendingTopic = { label: topic, tag: topic.toLowerCase().replace(/\s+/g, '-') };
-    
-    startTransition(() => {
-      // Add to trending topics if it doesn't exist
-      if (!trendingTopics.find(t => t.tag === newTopic.tag)) {
-        setTrendingTopics(prev => [newTopic, ...prev]);
+    startTransition(async () => {
+      setIsLoading(true);
+      setSelectedTopic(null);
+      setSelectedAiTopic(topic);
+      setNews([]);
+      setHasMore(false); // AI news is not paginated
+
+      try {
+        const result: GenerateTopicNewsOutput = await generateTopicNews({ topic });
+        
+        const formattedNews: NewsArticle[] = result.generatedNews.map(article => ({
+          hash_id: generateId(),
+          news_obj: {
+            title: article.title,
+            content: article.content,
+            author_name: article.author_name,
+            created_at: Math.floor(Date.now() / 1000),
+            image_url: `https://placehold.co/600x400.png`,
+            source_url: '#',
+            shortened_url: '',
+          }
+        }));
+        setNews(formattedNews);
+      } catch (error) {
+        console.error("Failed to generate AI news for topic:", error);
+        toast({ variant: "destructive", title: "AI Error", description: `Could not generate news for ${topic}.` });
+        setNews([]);
+      } finally {
+        setIsLoading(false);
       }
-      // Select the topic
-      handleSelectTopic(newTopic.tag);
     });
   };
 
@@ -119,12 +147,21 @@ export default function NewsExplorer() {
   };
 
   const handleLoadMore = () => {
-    if (!isLoadingMore && hasMore && selectedTopic) {
+    if (!isLoadingMore && hasMore && selectedTopic && !selectedAiTopic) {
       setPage(prevPage => prevPage + 1);
     }
   };
 
-  const selectedTopicLabel = trendingTopics.find(t => t.tag === selectedTopic)?.label || selectedTopic;
+  const getHeaderTitle = () => {
+    if (selectedAiTopic) {
+      return `AI News for: "${selectedAiTopic}"`
+    }
+    if (selectedTopic) {
+      const topicLabel = trendingTopics.find(t => t.tag === selectedTopic)?.label || selectedTopic;
+      return `Showing results for "${topicLabel}"`
+    }
+    return 'Top Stories';
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -146,7 +183,6 @@ export default function NewsExplorer() {
               />
             </SidebarGroup>
             <SuggestedTopics readingHistory={readingHistory} onSelectTopic={handleSelectSuggestedTopic} />
-            <SuggestedNews readingHistory={readingHistory} />
           </SidebarContent>
         </Sidebar>
         <SidebarInset>
@@ -154,7 +190,7 @@ export default function NewsExplorer() {
             <div className="flex items-center gap-2">
                <SidebarTrigger className="md:hidden" />
                <h2 className="text-lg md:text-xl font-semibold text-foreground truncate">
-                  {selectedTopic ? `Showing results for "${selectedTopicLabel}"` : 'Top Stories'}
+                  {getHeaderTitle()}
                </h2>
             </div>
             <LanguageSwitcher lang={lang} setLang={handleSetLang} />
@@ -164,7 +200,7 @@ export default function NewsExplorer() {
               news={news}
               isLoading={isLoading}
               isLoadingMore={isLoadingMore}
-              hasMore={!!selectedTopic && hasMore}
+              hasMore={!!selectedTopic && hasMore && !selectedAiTopic}
               onLoadMore={handleLoadMore}
             />
           </main>
