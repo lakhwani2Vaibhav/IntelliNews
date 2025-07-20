@@ -54,45 +54,43 @@ export default function NewsExplorer() {
     const controller = new AbortController();
 
     const fetchNews = async () => {
-        const isLoadMore = page > 1;
-        
-        if (isLoadMore) {
-            setIsLoadingMore(true);
+      const isLoadMore = page > 1;
+      
+      // Reset news list if it's a new topic/language, but not for pagination
+      if (!isLoadMore) {
+        setNews([]); 
+        setIsLoading(true);
+      } else {
+        setIsLoadingMore(true);
+      }
+      
+      try {
+        let url = '';
+        if (selectedTopic) {
+            url = `/api/news/topic-news/${selectedTopic}?lang=${lang}&page=${page}`;
         } else {
-            setIsLoading(true);
+            url = `/api/news/get-news?lang=${lang}`;
         }
-
-        try {
-            let url = '';
-            if (selectedTopic) {
-                url = `/api/news/topic-news/${selectedTopic}?lang=${lang}&page=${page}`;
-            } else {
-                url = `/api/news/get-news?lang=${lang}`;
-            }
-            const res = await fetch(url, { signal: controller.signal });
-            if (!res.ok) throw new Error('Failed to fetch news');
-            
-            const json: ApiResponse<GeneralNewsResponseData | TopicNewsResponseData> = await res.json();
-            const newArticles = json.data.news_list || [];
-            
-            setNews(prevNews => isLoadMore ? [...prevNews, ...newArticles] : newArticles);
-            setHasMore(newArticles.length > 0 && !!selectedTopic);
-        } catch (error) {
-            if ((error as Error).name !== 'AbortError') {
-                toast({ variant: 'destructive', title: 'Error', description: 'Could not load news articles.' });
-            }
-        } finally {
-            if (!controller.signal.aborted) {
-                setIsLoading(false);
-                setIsLoadingMore(false);
-            }
+        const res = await fetch(url, { signal: controller.signal });
+        if (!res.ok) throw new Error('Failed to fetch news');
+        
+        const json: ApiResponse<GeneralNewsResponseData | TopicNewsResponseData> = await res.json();
+        const newArticles = json.data.news_list || [];
+        
+        setNews(prevNews => isLoadMore ? [...prevNews, ...newArticles] : newArticles);
+        setHasMore(newArticles.length > 0 && !!selectedTopic);
+      } catch (error) {
+          if ((error as Error).name !== 'AbortError') {
+              toast({ variant: 'destructive', title: 'Error', description: 'Could not load news articles.' });
+          }
+      } finally {
+        if (!controller.signal.aborted) {
+            setIsLoading(false);
+            setIsLoadingMore(false);
         }
+      }
     };
     
-    // Always reset news when topic or language changes
-    if (page === 1) {
-      setNews([]);
-    }
     fetchNews();
 
     return () => {
