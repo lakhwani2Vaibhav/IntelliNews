@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { NewsArticle, TrendingTopic, ApiResponse, GeneralNewsResponseData, TopicNewsResponseData } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
-import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarInset, SidebarGroup, SidebarGroupLabel, SidebarTrigger } from '@/components/ui/sidebar';
+import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarInset, SidebarGroup, SidebarGroupLabel, SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
 import NewsFeed from '@/components/NewsFeed';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import TrendingTopics from '@/components/TrendingTopics';
@@ -16,8 +16,7 @@ import { Separator } from './ui/separator';
 import { Sparkles } from 'lucide-react';
 import NewsCard from './NewsCard';
 
-
-export default function NewsExplorer() {
+function NewsExplorerContent() {
   const [lang, setLang] = useState<'en' | 'hi'>('en');
   const [trendingTopics, setTrendingTopics] = useState<TrendingTopic[]>([]);
   const [news, setNews] = useState<NewsArticle[]>([]);
@@ -32,6 +31,7 @@ export default function NewsExplorer() {
   const [isAiNewsLoading, setIsAiNewsLoading] = useState(false);
 
   const { toast } = useToast();
+  const sidebar = useSidebar();
 
   const fetchTrendingTopics = useCallback(async (currentLang: 'en' | 'hi') => {
     try {
@@ -126,6 +126,11 @@ export default function NewsExplorer() {
     }
   }, [readingHistory, selectedTopic, selectedAiTopic]);
 
+  const closeSidebarOnMobile = () => {
+    if (sidebar.isMobile) {
+      sidebar.setOpenMobile(false);
+    }
+  }
 
   const handleSelectTopic = (topicTag: string) => {
     setNews([]);
@@ -141,6 +146,7 @@ export default function NewsExplorer() {
       const historyTopic = topicObject ? topicObject.label : topicTag;
       setReadingHistory(prev => [...new Set([historyTopic, ...prev])].slice(0, 10));
     }
+    closeSidebarOnMobile();
   };
 
   const handleSelectSuggestedTopic = (topic: string) => {
@@ -151,6 +157,7 @@ export default function NewsExplorer() {
     setNews([]);
     setSuggestedNews([]);
     setHasMore(false);
+    closeSidebarOnMobile();
 
     generateTopicNews({ topic, numberOfArticles: 10 })
       .then(result => {
@@ -204,61 +211,70 @@ export default function NewsExplorer() {
   }
 
   return (
+    <>
+      <Sidebar>
+        <SidebarHeader className="p-4 border-b">
+          <h1 className="text-2xl font-bold text-primary flex items-center gap-2">
+            <Newspaper className="w-7 h-7" />
+            Inshorts Explorer
+          </h1>
+        </SidebarHeader>
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupLabel className="flex items-center gap-2"><Flame /> Trending Topics</SidebarGroupLabel>
+            <TrendingTopics
+              topics={trendingTopics}
+              selectedTopic={selectedTopic}
+              onSelectTopic={handleSelectTopic}
+            />
+          </SidebarGroup>
+          <SuggestedTopics readingHistory={readingHistory} onSelectTopic={handleSelectSuggestedTopic} />
+        </SidebarContent>
+      </Sidebar>
+      <SidebarInset>
+        <header className="sticky top-0 z-10 flex items-center justify-between p-4 bg-background/80 backdrop-blur-sm border-b">
+          <div className="flex items-center gap-2">
+             <SidebarTrigger className="md:hidden" />
+             <h2 className="text-lg md:text-xl font-semibold text-foreground truncate">
+                {getHeaderTitle()}
+             </h2>
+          </div>
+          <LanguageSwitcher lang={lang} setLang={handleSetLang} />
+        </header>
+        <main className="p-4 md:p-6">
+          {suggestedNews.length > 0 && !selectedTopic && !selectedAiTopic && (
+            <div className="mb-8">
+              <div className="flex items-center gap-2 mb-4">
+                <Sparkles className="w-6 h-6 text-primary" />
+                <h2 className="text-xl font-bold">Suggested For You</h2>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {suggestedNews.map(article => (
+                  <NewsCard key={article.hash_id} article={article} />
+                ))}
+              </div>
+              <Separator className="my-8" />
+            </div>
+          )}
+          <NewsFeed
+            news={news}
+            isLoading={isLoading}
+            isLoadingMore={isLoadingMore}
+            hasMore={!!selectedTopic && hasMore && !selectedAiTopic}
+            onLoadMore={handleLoadMore}
+          />
+        </main>
+      </SidebarInset>
+    </>
+  );
+}
+
+
+export default function NewsExplorer() {
+  return (
     <div className="min-h-screen bg-background">
       <SidebarProvider>
-        <Sidebar>
-          <SidebarHeader className="p-4 border-b">
-            <h1 className="text-2xl font-bold text-primary flex items-center gap-2">
-              <Newspaper className="w-7 h-7" />
-              Inshorts Explorer
-            </h1>
-          </SidebarHeader>
-          <SidebarContent>
-            <SidebarGroup>
-              <SidebarGroupLabel className="flex items-center gap-2"><Flame /> Trending Topics</SidebarGroupLabel>
-              <TrendingTopics
-                topics={trendingTopics}
-                selectedTopic={selectedTopic}
-                onSelectTopic={handleSelectTopic}
-              />
-            </SidebarGroup>
-            <SuggestedTopics readingHistory={readingHistory} onSelectTopic={handleSelectSuggestedTopic} />
-          </SidebarContent>
-        </Sidebar>
-        <SidebarInset>
-          <header className="sticky top-0 z-10 flex items-center justify-between p-4 bg-background/80 backdrop-blur-sm border-b">
-            <div className="flex items-center gap-2">
-               <SidebarTrigger className="md:hidden" />
-               <h2 className="text-lg md:text-xl font-semibold text-foreground truncate">
-                  {getHeaderTitle()}
-               </h2>
-            </div>
-            <LanguageSwitcher lang={lang} setLang={handleSetLang} />
-          </header>
-          <main className="p-4 md:p-6">
-            {suggestedNews.length > 0 && !selectedTopic && !selectedAiTopic && (
-              <div className="mb-8">
-                <div className="flex items-center gap-2 mb-4">
-                  <Sparkles className="w-6 h-6 text-primary" />
-                  <h2 className="text-xl font-bold">Suggested For You</h2>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {suggestedNews.map(article => (
-                    <NewsCard key={article.hash_id} article={article} />
-                  ))}
-                </div>
-                <Separator className="my-8" />
-              </div>
-            )}
-            <NewsFeed
-              news={news}
-              isLoading={isLoading}
-              isLoadingMore={isLoadingMore}
-              hasMore={!!selectedTopic && hasMore && !selectedAiTopic}
-              onLoadMore={handleLoadMore}
-            />
-          </main>
-        </SidebarInset>
+        <NewsExplorerContent />
       </SidebarProvider>
     </div>
   );
