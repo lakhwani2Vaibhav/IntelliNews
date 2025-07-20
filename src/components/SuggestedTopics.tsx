@@ -11,9 +11,10 @@ import { Sparkles } from 'lucide-react';
 interface SuggestedTopicsProps {
   readingHistory: string[];
   onSelectTopic: (topic: string) => void;
+  lang: 'en' | 'hi';
 }
 
-export default function SuggestedTopics({ readingHistory, onSelectTopic }: SuggestedTopicsProps) {
+export default function SuggestedTopics({ readingHistory, onSelectTopic, lang }: SuggestedTopicsProps) {
   const [suggestedTopics, setSuggestedTopics] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -30,6 +31,7 @@ export default function SuggestedTopics({ readingHistory, onSelectTopic }: Sugge
         const result: SuggestRelevantTopicsOutput = await suggestRelevantTopics({
           readingHistory: readingHistory.join(', '),
           numberOfSuggestions: 5,
+          language: lang === 'hi' ? 'Hindi' : 'English',
         });
         setSuggestedTopics(result.suggestedTopics);
       } catch (error) {
@@ -43,7 +45,7 @@ export default function SuggestedTopics({ readingHistory, onSelectTopic }: Sugge
     const timeoutId = setTimeout(getSuggestions, 500); 
     return () => clearTimeout(timeoutId);
 
-  }, [readingHistory, toast]);
+  }, [readingHistory, lang, toast]);
 
   if (readingHistory.length === 0) {
     return null;

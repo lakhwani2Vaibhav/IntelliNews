@@ -19,6 +19,7 @@ const SuggestRelevantTopicsInputSchema = z.object({
     .number()
     .default(3)
     .describe('The maximum number of topic suggestions to return.'),
+  language: z.string().default('English').describe('The language for the suggested topics (e.g., "English", "Hindi").'),
 });
 export type SuggestRelevantTopicsInput = z.infer<typeof SuggestRelevantTopicsInputSchema>;
 
@@ -37,13 +38,14 @@ const prompt = ai.definePrompt({
   name: 'suggestRelevantTopicsPrompt',
   input: {schema: SuggestRelevantTopicsInputSchema},
   output: {schema: SuggestRelevantTopicsOutputSchema},
-  prompt: `Based on the user's reading history, suggest {{numberOfSuggestions}} relevant news topics.
+  prompt: `Based on the user's reading history, suggest {{numberOfSuggestions}} relevant news topics in the specified language.
 
+Language: {{{language}}}
 Reading History: {{{readingHistory}}}
 
 Make sure the suggested topics are single words or short phrases.
 
-Output the topics as a JSON array of strings.`,
+Output the topics as a JSON array of strings in {{{language}}}.`,
 });
 
 const suggestRelevantTopicsFlow = ai.defineFlow(

@@ -25,6 +25,7 @@ const GenerateTopicNewsInputSchema = z.object({
     .number()
     .default(5)
     .describe('The number of news articles to generate.'),
+  language: z.string().default('English').describe('The language for the generated news articles (e.g., "English", "Hindi").'),
 });
 export type GenerateTopicNewsInput = z.infer<typeof GenerateTopicNewsInputSchema>;
 
@@ -44,16 +45,17 @@ const prompt = ai.definePrompt({
   name: 'generateTopicNewsPrompt',
   input: { schema: GenerateTopicNewsInputSchema },
   output: { schema: GenerateTopicNewsOutputSchema },
-  prompt: `You are an expert news writer for a service like Inshorts. Your task is to generate {{numberOfArticles}} fictional, short, and engaging news summaries based on the provided topic.
+  prompt: `You are an expert news writer for a service like Inshorts. Your task is to generate {{numberOfArticles}} fictional, short, and engaging news summaries based on the provided topic, in the specified language.
 
 The generated articles should be plausible but clearly fictional. Do not use real, current events.
 Each article must include a title, a short content summary (like a news blurb), and a plausible author name (like 'Sports Analyst' or 'Science Reporter').
 
+Language: {{{language}}}
 Topic: {{{topic}}}
 
 Generate {{numberOfArticles}} articles related to this topic.
 
-Output the articles in the requested JSON format.
+Output the articles in the requested JSON format. The text content (title, content, author_name) should be in {{{language}}}.
 `,
 });
 

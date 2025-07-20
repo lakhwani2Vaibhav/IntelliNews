@@ -102,6 +102,7 @@ function NewsExplorerContent() {
       generateSuggestedNews({
         readingHistory: readingHistory.join(', '),
         numberOfArticles: 4,
+        language: lang === 'hi' ? 'Hindi' : 'English',
       }).then(result => {
         const formattedNews: NewsArticle[] = result.suggestedNews.map(article => ({
           hash_id: generateId(),
@@ -124,7 +125,7 @@ function NewsExplorerContent() {
     } else if (!selectedTopic && !selectedAiTopic) {
       setSuggestedNews([]); 
     }
-  }, [readingHistory, selectedTopic, selectedAiTopic]);
+  }, [readingHistory, selectedTopic, selectedAiTopic, lang]);
 
   const closeSidebarOnMobile = () => {
     if (sidebar.isMobile) {
@@ -159,7 +160,7 @@ function NewsExplorerContent() {
     setHasMore(false);
     closeSidebarOnMobile();
 
-    generateTopicNews({ topic, numberOfArticles: 10 })
+    generateTopicNews({ topic, numberOfArticles: 10, language: lang === 'hi' ? 'Hindi' : 'English' })
       .then(result => {
         const formattedNews: NewsArticle[] = result.generatedNews.map(article => ({
           hash_id: generateId(),
@@ -228,7 +229,7 @@ function NewsExplorerContent() {
               onSelectTopic={handleSelectTopic}
             />
           </SidebarGroup>
-          <SuggestedTopics readingHistory={readingHistory} onSelectTopic={handleSelectSuggestedTopic} />
+          <SuggestedTopics readingHistory={readingHistory} onSelectTopic={handleSelectSuggestedTopic} lang={lang} />
         </SidebarContent>
       </Sidebar>
       <SidebarInset>
