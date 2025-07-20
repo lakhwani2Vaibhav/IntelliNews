@@ -29,9 +29,9 @@ export default function TrendingTopics({ topics, selectedTopic, onSelectTopic }:
           <Button
             variant={selectedTopic === topic.tag ? 'secondary' : 'ghost'}
             className="w-full justify-start"
-            onClick={() => onSelectTopic(topic.topic_name)}
+            onClick={() => onSelectTopic(topic.tag)}
           >
-            {topic.tag}
+            {topic.label}
           </Button>
         </SidebarMenuItem>
       ))}

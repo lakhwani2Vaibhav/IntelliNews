@@ -12,8 +12,8 @@ export interface NewsArticle {
 }
 
 export interface TrendingTopic {
+  label: string;
   tag: string;
-  topic_name: string;
 }
 
 export interface TopicNewsResponseData {

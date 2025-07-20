@@ -83,7 +83,9 @@ export default function NewsExplorer() {
         setSelectedTopic(null);
     } else {
         setSelectedTopic(topic);
-        setReadingHistory(prev => [...new Set([topic, ...prev])].slice(0, 10));
+        const topicObject = trendingTopics.find(t => t.tag === topic);
+        const historyTopic = topicObject ? topicObject.label : topic;
+        setReadingHistory(prev => [...new Set([historyTopic, ...prev])].slice(0, 10));
     }
   };
 
@@ -94,6 +96,8 @@ export default function NewsExplorer() {
       fetchNews(selectedTopic, nextPage);
     }
   };
+
+  const selectedTopicLabel = trendingTopics.find(t => t.tag === selectedTopic)?.label || selectedTopic;
 
   return (
     <div className="min-h-screen bg-background">
@@ -120,7 +124,7 @@ export default function NewsExplorer() {
         <SidebarInset>
           <header className="sticky top-0 z-10 flex items-center justify-between p-4 bg-background/80 backdrop-blur-sm border-b">
              <h2 className="text-xl font-semibold text-foreground">
-                {selectedTopic ? `Showing results for "${selectedTopic}"` : 'Top Stories'}
+                {selectedTopic ? `Showing results for "${selectedTopicLabel}"` : 'Top Stories'}
              </h2>
             <LanguageSwitcher lang={lang} setLang={setLang} />
           </header>
