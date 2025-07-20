@@ -23,11 +23,12 @@ export default function NewsExplorer() {
 
   const { toast } = useToast();
 
-  const fetchNews = useCallback(async (topic: string | null, newPage: number, currentLang: 'en' | 'hi', isNewTopic: boolean) => {
-    if (newPage === 1) {
-        setIsLoading(true);
-    } else {
+  const fetchNews = useCallback(async (topic: string | null, newPage: number, currentLang: 'en' | 'hi', isLoadMore: boolean) => {
+    if (isLoadMore) {
         setIsLoadingMore(true);
+    } else {
+        setIsLoading(true);
+        setNews([]); // Clear news immediately on new fetch
     }
 
     try {
@@ -42,7 +43,7 @@ export default function NewsExplorer() {
       const json: ApiResponse<GeneralNewsResponseData | TopicNewsResponseData> = await res.json();
       const newArticles = json.data.news_list || [];
       
-      setNews(prev => (newPage === 1 || isNewTopic) ? newArticles : [...prev, ...newArticles]);
+      setNews(prev => isLoadMore ? [...prev, ...newArticles] : newArticles);
       setHasMore(newArticles.length > 0);
 
     } catch (error) {
@@ -70,24 +71,24 @@ export default function NewsExplorer() {
 
   // Effect for fetching news when topic, language, or page changes
   useEffect(() => {
-    fetchNews(selectedTopic, page, lang, page === 1);
+    fetchNews(selectedTopic, page, lang, page > 1);
   }, [selectedTopic, lang, page, fetchNews]);
 
 
   const handleSelectTopic = (topic: string) => {
-    const isSameTopic = topic === selectedTopic;
-    setSelectedTopic(isSameTopic ? null : topic);
-    setPage(1); // Reset to page 1 for new topic or when deselecting
-
-    if (!isSameTopic) {
+    if (topic === selectedTopic) {
+        // If the same topic is selected, treat it as a deselection
+        setSelectedTopic(null);
+    } else {
+        setSelectedTopic(topic);
         const topicObject = trendingTopics.find(t => t.tag === topic);
         const historyTopic = topicObject ? topicObject.label : topic;
         setReadingHistory(prev => [...new Set([historyTopic, ...prev])].slice(0, 10));
     }
+    setPage(1); // Reset to page 1 for new topic or when deselecting
   };
 
   const handleSetLang = (newLang: 'en' | 'hi') => {
-    setNews([]); // Immediately clear news to prevent showing stale content
     setPage(1); // Reset to page 1 when language changes
     setLang(newLang);
   };
