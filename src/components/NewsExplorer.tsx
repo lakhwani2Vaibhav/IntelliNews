@@ -67,15 +67,14 @@ export default function NewsExplorer() {
 
   useEffect(() => {
     fetchTrendingTopics();
-    setPage(1);
-    fetchNews(selectedTopic, 1);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lang, fetchTrendingTopics]);
-
+  
   useEffect(() => {
+    // This effect runs when language or selected topic changes.
+    // It fetches news from page 1 for the current context.
     setPage(1);
     fetchNews(selectedTopic, 1);
-  }, [selectedTopic, fetchNews]);
+  }, [lang, selectedTopic, fetchNews]);
 
   const handleSelectTopic = (topic: string) => {
     if (topic === selectedTopic) {
