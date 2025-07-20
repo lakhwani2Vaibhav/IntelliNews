@@ -9,8 +9,8 @@ import LanguageSwitcher from '@/components/LanguageSwitcher';
 import TrendingTopics from '@/components/TrendingTopics';
 import SuggestedTopics from '@/components/SuggestedTopics';
 import { Newspaper, Flame } from 'lucide-react';
-import { generateTopicNews, type GenerateTopicNewsOutput } from '@/ai/flows/generate-topic-news';
-import { generateSuggestedNews, type GenerateSuggestedNewsOutput } from '@/ai/flows/generate-suggested-news';
+import { generateTopicNews } from '@/ai/flows/generate-topic-news';
+import { generateSuggestedNews } from '@/ai/flows/generate-suggested-news';
 import { generateId } from '@/lib/utils';
 import { Separator } from './ui/separator';
 import { Sparkles } from 'lucide-react';
@@ -60,7 +60,6 @@ export default function NewsExplorer() {
             setIsLoadingMore(true);
         } else {
             setIsLoading(true);
-            setNews([]);
         }
 
         try {
@@ -90,6 +89,10 @@ export default function NewsExplorer() {
         }
     };
     
+    // Always reset news when topic or language changes
+    if (page === 1) {
+      setNews([]);
+    }
     fetchNews();
 
     return () => {
@@ -143,6 +146,7 @@ export default function NewsExplorer() {
   };
 
   const handleSelectSuggestedTopic = (topic: string) => {
+    setPage(1);
     setIsLoading(true);
     setSelectedTopic(null);
     setSelectedAiTopic(topic);
