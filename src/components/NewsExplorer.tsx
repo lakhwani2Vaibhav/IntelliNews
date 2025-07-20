@@ -23,21 +23,9 @@ export default function NewsExplorer() {
 
   const { toast } = useToast();
 
-  const fetchTrendingTopics = useCallback(async () => {
-    try {
-      const res = await fetch(`/api/news/trending-list?lang=${lang}`);
-      if (!res.ok) throw new Error('Failed to fetch trending topics');
-      const json: ApiResponse<TrendingTopicsResponseData> = await res.json();
-      setTrendingTopics(json.data.trending_tags || []);
-    } catch (error) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Could not load trending topics.' });
-    }
-  }, [lang, toast]);
-
-  const fetchNews = useCallback(async (topic: string | null, newPage: number) => {
+  const fetchNews = useCallback(async (topic: string | null, newPage: number, currentLang: 'en' | 'hi', isNewTopic: boolean) => {
     if (newPage === 1) {
         setIsLoading(true);
-        setNews([]);
     } else {
         setIsLoadingMore(true);
     }
@@ -45,16 +33,16 @@ export default function NewsExplorer() {
     try {
       let url = '';
       if (topic) {
-        url = `/api/news/topic-news/${topic}?lang=${lang}&page=${newPage}`;
+        url = `/api/news/topic-news/${topic}?lang=${currentLang}&page=${newPage}`;
       } else {
-        url = `/api/news/get-news?lang=${lang}`;
+        url = `/api/news/get-news?lang=${currentLang}`;
       }
       const res = await fetch(url);
       if (!res.ok) throw new Error('Failed to fetch news');
       const json: ApiResponse<GeneralNewsResponseData | TopicNewsResponseData> = await res.json();
       const newArticles = json.data.news_list || [];
       
-      setNews(prev => newPage === 1 ? newArticles : [...prev, ...newArticles]);
+      setNews(prev => (newPage === 1 || isNewTopic) ? newArticles : [...prev, ...newArticles]);
       setHasMore(newArticles.length > 0);
 
     } catch (error) {
@@ -63,35 +51,50 @@ export default function NewsExplorer() {
       setIsLoading(false);
       setIsLoadingMore(false);
     }
+  }, [toast]);
+
+  // Effect for fetching trending topics when language changes
+  useEffect(() => {
+    const fetchTrendingTopics = async () => {
+      try {
+        const res = await fetch(`/api/news/trending-list?lang=${lang}`);
+        if (!res.ok) throw new Error('Failed to fetch trending topics');
+        const json: ApiResponse<TrendingTopicsResponseData> = await res.json();
+        setTrendingTopics(json.data.trending_tags || []);
+      } catch (error) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Could not load trending topics.' });
+      }
+    };
+    fetchTrendingTopics();
   }, [lang, toast]);
 
+  // Effect for fetching news when topic, language, or page changes
   useEffect(() => {
-    fetchTrendingTopics();
-  }, [lang, fetchTrendingTopics]);
-  
-  useEffect(() => {
-    // This effect runs when language or selected topic changes.
-    // It fetches news from page 1 for the current context.
-    setPage(1);
-    fetchNews(selectedTopic, 1);
-  }, [lang, selectedTopic, fetchNews]);
+    fetchNews(selectedTopic, page, lang, page === 1);
+  }, [selectedTopic, lang, page, fetchNews]);
+
 
   const handleSelectTopic = (topic: string) => {
-    if (topic === selectedTopic) {
-        setSelectedTopic(null);
-    } else {
-        setSelectedTopic(topic);
+    const isSameTopic = topic === selectedTopic;
+    setSelectedTopic(isSameTopic ? null : topic);
+    setPage(1); // Reset to page 1 for new topic or when deselecting
+
+    if (!isSameTopic) {
         const topicObject = trendingTopics.find(t => t.tag === topic);
         const historyTopic = topicObject ? topicObject.label : topic;
         setReadingHistory(prev => [...new Set([historyTopic, ...prev])].slice(0, 10));
     }
   };
 
+  const handleSetLang = (newLang: 'en' | 'hi') => {
+    setNews([]); // Immediately clear news to prevent showing stale content
+    setPage(1); // Reset to page 1 when language changes
+    setLang(newLang);
+  };
+
   const handleLoadMore = () => {
     if (!isLoadingMore && hasMore && selectedTopic) {
-      const nextPage = page + 1;
-      setPage(nextPage);
-      fetchNews(selectedTopic, nextPage);
+      setPage(prevPage => prevPage + 1);
     }
   };
 
@@ -124,7 +127,7 @@ export default function NewsExplorer() {
              <h2 className="text-xl font-semibold text-foreground">
                 {selectedTopic ? `Showing results for "${selectedTopicLabel}"` : 'Top Stories'}
              </h2>
-            <LanguageSwitcher lang={lang} setLang={setLang} />
+            <LanguageSwitcher lang={lang} setLang={handleSetLang} />
           </header>
           <main className="p-4 md:p-6">
             <NewsFeed
