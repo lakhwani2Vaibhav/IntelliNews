@@ -1,22 +1,27 @@
 "use client";
 
 import { useState, useEffect, useCallback, useTransition } from 'react';
-import type { NewsArticle, TrendingTopic, ApiResponse, GeneralNewsResponseData, TrendingTopicsResponseData, TopicNewsResponseData } from '@/lib/types';
+import type { NewsArticle, TrendingTopic, ApiResponse, GeneralNewsResponseData, TopicNewsResponseData } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
 import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarInset, SidebarGroup, SidebarGroupLabel, SidebarTrigger } from '@/components/ui/sidebar';
 import NewsFeed from '@/components/NewsFeed';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import TrendingTopics from '@/components/TrendingTopics';
 import SuggestedTopics from '@/components/SuggestedTopics';
-import { Newspaper, Flame, Sparkles } from 'lucide-react';
+import { Newspaper, Flame } from 'lucide-react';
 import { generateTopicNews, type GenerateTopicNewsOutput } from '@/ai/flows/generate-topic-news';
+import { generateSuggestedNews, type GenerateSuggestedNewsOutput } from '@/ai/flows/generate-suggested-news';
 import { generateId } from '@/lib/utils';
+import { Separator } from './ui/separator';
+import { Sparkles } from 'lucide-react';
+import NewsCard from './NewsCard';
 
 
 export default function NewsExplorer() {
   const [lang, setLang] = useState<'en' | 'hi'>('en');
   const [trendingTopics, setTrendingTopics] = useState<TrendingTopic[]>([]);
   const [news, setNews] = useState<NewsArticle[]>([]);
+  const [suggestedNews, setSuggestedNews] = useState<NewsArticle[]>([]);
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [selectedAiTopic, setSelectedAiTopic] = useState<string | null>(null);
   const [page, setPage] = useState(1);
@@ -24,6 +29,7 @@ export default function NewsExplorer() {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [readingHistory, setReadingHistory] = useState<string[]>([]);
+  const [isAiNewsLoading, setIsAiNewsLoading] = useState(false);
 
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
@@ -41,9 +47,10 @@ export default function NewsExplorer() {
 
   const fetchNews = useCallback(async (topic: string | null, newPage: number, currentLang: 'en' | 'hi', isLoadMore: boolean) => {
     if (isLoadMore) {
-        setIsLoadingMore(true);
+      setIsLoadingMore(true);
     } else {
-        setIsLoading(true);
+      setIsLoading(true);
+      setNews([]); // Clear previous news
     }
 
     try {
@@ -68,16 +75,14 @@ export default function NewsExplorer() {
       setIsLoadingMore(false);
     }
   }, [toast]);
-  
+
   useEffect(() => {
     startTransition(() => {
-      setIsLoading(true);
-      fetchTrendingTopics(lang);
-      fetchNews(selectedTopic, page, lang, false);
+        fetchTrendingTopics(lang);
+        fetchNews(selectedTopic, page, lang, page > 1);
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lang]);
-
 
   useEffect(() => {
     // This effect handles fetching real news when topic or page changes.
@@ -88,21 +93,57 @@ export default function NewsExplorer() {
       fetchNews(selectedTopic, page, lang, page > 1);
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedTopic, page, selectedAiTopic]);
+  }, [selectedTopic, page]);
+
+  useEffect(() => {
+    // Fetch suggested news when reading history changes, but only for top stories view
+    if (readingHistory.length > 0 && !selectedTopic && !selectedAiTopic) {
+      startTransition(async () => {
+        setIsAiNewsLoading(true);
+        try {
+          const result: GenerateSuggestedNewsOutput = await generateSuggestedNews({
+            readingHistory: readingHistory.join(', '),
+            numberOfArticles: 4,
+          });
+          const formattedNews: NewsArticle[] = result.suggestedNews.map(article => ({
+            hash_id: generateId(),
+            news_obj: {
+              title: article.title,
+              content: article.content,
+              author_name: article.author_name,
+              created_at: Math.floor(Date.now() / 1000),
+              image_url: `https://placehold.co/600x400.png`,
+              source_url: '#',
+              shortened_url: '',
+            }
+          }));
+          setSuggestedNews(formattedNews);
+        } catch (error) {
+          console.error("Failed to generate suggested news:", error);
+          // Don't show a toast for this, it's a background feature
+        } finally {
+          setIsAiNewsLoading(false);
+        }
+      });
+    } else if (!selectedTopic && !selectedAiTopic) {
+      setSuggestedNews([]); // Clear suggestions if history is cleared
+    }
+  }, [readingHistory, selectedTopic, selectedAiTopic]);
 
 
   const handleSelectTopic = (topic: string) => {
     startTransition(() => {
-        setPage(1); 
-        setSelectedAiTopic(null);
-        if (topic === selectedTopic) {
-            setSelectedTopic(null);
-        } else {
-            setSelectedTopic(topic);
-            const topicObject = trendingTopics.find(t => t.tag === topic);
-            const historyTopic = topicObject ? topicObject.label : topic;
-            setReadingHistory(prev => [...new Set([historyTopic, ...prev])].slice(0, 10));
-        }
+      setPage(1); 
+      setSelectedAiTopic(null);
+      setSuggestedNews([]); // Clear AI suggestions when a real topic is selected
+      if (topic === selectedTopic) {
+        setSelectedTopic(null);
+      } else {
+        setSelectedTopic(topic);
+        const topicObject = trendingTopics.find(t => t.tag === topic);
+        const historyTopic = topicObject ? topicObject.label : topic;
+        setReadingHistory(prev => [...new Set([historyTopic, ...prev])].slice(0, 10));
+      }
     });
   };
 
@@ -112,10 +153,11 @@ export default function NewsExplorer() {
       setSelectedTopic(null);
       setSelectedAiTopic(topic);
       setNews([]);
+      setSuggestedNews([]);
       setHasMore(false); // AI news is not paginated
 
       try {
-        const result: GenerateTopicNewsOutput = await generateTopicNews({ topic });
+        const result: GenerateTopicNewsOutput = await generateTopicNews({ topic, numberOfArticles: 10 });
         
         const formattedNews: NewsArticle[] = result.generatedNews.map(article => ({
           hash_id: generateId(),
@@ -142,7 +184,7 @@ export default function NewsExplorer() {
 
   const handleSetLang = (newLang: 'en' | 'hi') => {
     if (newLang !== lang) {
-      setLang(newLang);
+        setLang(newLang);
     }
   };
 
@@ -196,6 +238,20 @@ export default function NewsExplorer() {
             <LanguageSwitcher lang={lang} setLang={handleSetLang} />
           </header>
           <main className="p-4 md:p-6">
+            {suggestedNews.length > 0 && !selectedTopic && !selectedAiTopic && (
+              <div className="mb-8">
+                <div className="flex items-center gap-2 mb-4">
+                  <Sparkles className="w-6 h-6 text-primary" />
+                  <h2 className="text-xl font-bold">Suggested For You</h2>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {suggestedNews.map(article => (
+                    <NewsCard key={article.hash_id} article={article} />
+                  ))}
+                </div>
+                <Separator className="my-8" />
+              </div>
+            )}
             <NewsFeed
               news={news}
               isLoading={isLoading}
