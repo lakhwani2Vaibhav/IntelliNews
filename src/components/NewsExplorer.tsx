@@ -48,77 +48,66 @@ function NewsExplorerContent() {
   useEffect(() => {
     fetchTrendingTopics(lang);
   }, [lang, fetchTrendingTopics]);
-  
-  useEffect(() => {
+
+  const fetchData = useCallback(async (isLoadMore = false) => {
     if (selectedAiTopic) return;
-
-    const controller = new AbortController();
-
-    const fetchNews = async () => {
-      const isLoadMore = page > 1 || (!!nextPageOffset && !selectedTopic);
-      
-      if (isLoadMore) {
-        setIsLoadingMore(true);
-      } else {
-        setIsLoading(true);
-      }
-      
-      try {
-        let url = '';
-        if (selectedTopic) {
-            url = `/api/news/topic-news/${selectedTopic}?lang=${lang}&page=${page}`;
-        } else {
-            const offsetParam = nextPageOffset ? `&news_offset=${nextPageOffset}` : '';
-            url = `/api/news/get-news?lang=${lang}${offsetParam}`;
-        }
-
-        const res = await fetch(url, { signal: controller.signal });
-        if (!res.ok) throw new Error('Failed to fetch news');
-        
-        const json: ApiResponse<GeneralNewsResponseData | TopicNewsResponseData> = await res.json();
-        const newArticles = json.data.news_list || [];
-
-        if (page === 1 && selectedTopic && newArticles.length === 0) {
-          toast({
-            title: 'No articles found',
-            description: `No articles found for this topic. Showing Top Stories instead.`,
-          });
-          setSelectedTopic(null); // Fallback to top stories
-          setNews([]);
-          setPage(1);
-          setNextPageOffset(null);
-          return;
-        }
-        
-        setNews(prevNews => isLoadMore ? [...prevNews, ...newArticles] : newArticles);
-        
-        if (selectedTopic) {
-          setHasMore('next_page_hash' in json.data && !!json.data.next_page_hash);
-        } else {
-          const nextOffset = ('min_news_id' in json.data) ? json.data.min_news_id : null;
-          setNextPageOffset(nextOffset);
-          setHasMore(!!nextOffset);
-        }
-
-      } catch (error) {
-          if ((error as Error).name !== 'AbortError') {
-              toast({ variant: 'destructive', title: 'Error', description: 'Could not load news articles.' });
-          }
-      } finally {
-        if (!controller.signal.aborted) {
-            setIsLoading(false);
-            setIsLoadingMore(false);
-        }
-      }
-    };
     
-    fetchNews();
+    if (isLoadMore) {
+      setIsLoadingMore(true);
+    } else {
+      setIsLoading(true);
+      setNews([]);
+    }
 
-    return () => {
-        controller.abort();
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedTopic, page, lang, selectedAiTopic]);
+    try {
+      let url = '';
+      let currentPage = isLoadMore ? page + 1 : 1;
+
+      if (selectedTopic) {
+        url = `/api/news/topic-news/${selectedTopic}?lang=${lang}&page=${isLoadMore ? page : 1}`;
+      } else {
+        const offsetParam = isLoadMore && nextPageOffset ? `&news_offset=${nextPageOffset}` : '';
+        url = `/api/news/get-news?lang=${lang}${offsetParam}`;
+      }
+      
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Failed to fetch news');
+
+      const json: ApiResponse<GeneralNewsResponseData | TopicNewsResponseData> = await res.json();
+      const newArticles = json.data.news_list || [];
+      
+      if (!isLoadMore && selectedTopic && newArticles.length === 0) {
+        toast({
+          title: 'No articles found',
+          description: `No articles found for this topic. Showing Top Stories instead.`,
+        });
+        setSelectedTopic(null); // This will trigger a re-fetch in useEffect
+        return;
+      }
+
+      setNews(prevNews => isLoadMore ? [...prevNews, ...newArticles] : newArticles);
+
+      if (selectedTopic) {
+        setHasMore('next_page_hash' in json.data && !!json.data.next_page_hash);
+      } else {
+        const nextOffset = ('min_news_id' in json.data) ? json.data.min_news_id : null;
+        setNextPageOffset(nextOffset);
+        setHasMore(!!nextOffset);
+      }
+
+    } catch (error) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Could not load news articles.' });
+    } finally {
+      setIsLoading(false);
+      setIsLoadingMore(false);
+    }
+  }, [lang, nextPageOffset, page, selectedAiTopic, selectedTopic, toast]);
+
+
+  useEffect(() => {
+    fetchData(false);
+  }, [lang, selectedTopic, selectedAiTopic, fetchData]);
+
 
   useEffect(() => {
     if (readingHistory.length > 0 && !selectedTopic && !selectedAiTopic) {
@@ -225,11 +214,16 @@ function NewsExplorerContent() {
     }
   };
 
-  const handleLoadMore = () => {
+  const handleLoadMoreTopics = () => {
     if (isLoadingMore) return;
-    setPage(prevPage => prevPage + 1);
+    setPage(prev => prev + 1);
   };
   
+  const handleLoadMoreTopStories = () => {
+    if (isLoadingMore) return;
+    fetchData(true);
+  };
+
   const getHeaderTitle = () => {
     if (selectedAiTopic) {
       return `AI News for: "${selectedAiTopic}"`
@@ -292,7 +286,8 @@ function NewsExplorerContent() {
             isLoading={isLoading}
             isLoadingMore={isLoadingMore}
             hasMore={hasMore}
-            onLoadMore={handleLoadMore}
+            onLoadMoreTopics={handleLoadMoreTopics}
+            onLoadMoreTopStories={handleLoadMoreTopStories}
             isTopStories={!selectedTopic && !selectedAiTopic}
           />
         </main>

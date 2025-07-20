@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useEffect } from 'react';
 import type { NewsArticle } from '@/lib/types';
 import NewsCard from './NewsCard';
 import { Loader } from '@/components/ui/loader';
@@ -12,23 +12,32 @@ interface NewsFeedProps {
   isLoading: boolean;
   isLoadingMore: boolean;
   hasMore: boolean;
-  onLoadMore: () => void;
+  onLoadMoreTopics: () => void;
+  onLoadMoreTopStories: () => void;
   isTopStories: boolean;
 }
 
-export default function NewsFeed({ news, isLoading, isLoadingMore, hasMore, onLoadMore, isTopStories }: NewsFeedProps) {
+export default function NewsFeed({ news, isLoading, isLoadingMore, hasMore, onLoadMoreTopics, onLoadMoreTopStories, isTopStories }: NewsFeedProps) {
   const observer = useRef<IntersectionObserver>();
   
   const lastElementRef = useCallback((node: HTMLDivElement) => {
-    if (isLoading || isTopStories) return; // Only observe for non-top-stories
+    if (isLoadingMore || isTopStories) return; 
     if (observer.current) observer.current.disconnect();
+    
     observer.current = new IntersectionObserver(entries => {
       if (entries[0].isIntersecting && hasMore) {
-        onLoadMore();
+        onLoadMoreTopics();
       }
     });
+
     if (node) observer.current.observe(node);
-  }, [isLoading, hasMore, onLoadMore, isTopStories]);
+  }, [isLoadingMore, hasMore, onLoadMoreTopics, isTopStories]);
+  
+  useEffect(() => {
+    if (isTopStories && observer.current) {
+        observer.current.disconnect();
+    }
+  }, [isTopStories]);
 
   if (isLoading) {
     return (
@@ -57,11 +66,12 @@ export default function NewsFeed({ news, isLoading, isLoadingMore, hasMore, onLo
         })}
       </div>
       
-      {isLoadingMore && <Loader />}
+      {isLoadingMore && !isTopStories && <Loader />}
       
-      {isTopStories && hasMore && !isLoadingMore && (
+      {isTopStories && hasMore && (
         <div className="flex justify-center mt-8">
-          <Button onClick={onLoadMore} disabled={isLoadingMore}>
+          <Button onClick={onLoadMoreTopStories} disabled={isLoadingMore}>
+            {isLoadingMore ? <Loader className="mr-2" /> : null}
             Load More
           </Button>
         </div>
