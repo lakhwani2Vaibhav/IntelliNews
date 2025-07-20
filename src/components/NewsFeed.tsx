@@ -29,7 +29,7 @@ export default function NewsFeed({ news, isLoading, isLoadingMore, hasMore, onLo
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {Array.from({ length: 6 }).map((_, i) => <NewsCardSkeleton key={i} />)}
       </div>
     );
@@ -41,7 +41,7 @@ export default function NewsFeed({ news, isLoading, isLoadingMore, hasMore, onLo
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {news.map((article, index) => {
           if (news.length === index + 1) {
             return (
