@@ -118,7 +118,7 @@ function NewsExplorerContent() {
         controller.abort();
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedTopic, page, lang, selectedAiTopic, nextPageOffset]);
+  }, [selectedTopic, page, lang, selectedAiTopic]);
 
   useEffect(() => {
     if (readingHistory.length > 0 && !selectedTopic && !selectedAiTopic) {
@@ -159,12 +159,6 @@ function NewsExplorerContent() {
   }
 
   const handleSelectTopic = (topicTag: string) => {
-    setNews([]);
-    setPage(1);
-    setNextPageOffset(null);
-    setSelectedAiTopic(null);
-    setSuggestedNews([]);
-
     if (topicTag === selectedTopic) {
       setSelectedTopic(null);
     } else {
@@ -173,6 +167,11 @@ function NewsExplorerContent() {
       const historyTopic = topicObject ? topicObject.label : topicTag;
       setReadingHistory(prev => [...new Set([historyTopic, ...prev])].slice(0, 10));
     }
+    setNews([]);
+    setPage(1);
+    setNextPageOffset(null);
+    setSelectedAiTopic(null);
+    setSuggestedNews([]);
     closeSidebarOnMobile();
   };
 
