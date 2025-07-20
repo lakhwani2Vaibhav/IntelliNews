@@ -37,6 +37,7 @@ export default function NewsExplorer() {
   const fetchNews = useCallback(async (topic: string | null, newPage: number) => {
     if (newPage === 1) {
         setIsLoading(true);
+        setNews([]);
     } else {
         setIsLoadingMore(true);
     }
@@ -67,14 +68,12 @@ export default function NewsExplorer() {
   useEffect(() => {
     fetchTrendingTopics();
     setPage(1);
-    setNews([]);
-    setSelectedTopic(null);
-    fetchNews(null, 1);
-  }, [lang, fetchTrendingTopics, fetchNews]);
+    fetchNews(selectedTopic, 1);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lang, fetchTrendingTopics]);
 
   useEffect(() => {
     setPage(1);
-    setNews([]);
     fetchNews(selectedTopic, 1);
   }, [selectedTopic, fetchNews]);
 
