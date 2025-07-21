@@ -11,8 +11,15 @@ import {
 import { Button } from '@/components/ui/button';
 import { Globe, User, Calendar, Clock } from 'lucide-react';
 import { formatInTimeZone } from 'date-fns-tz';
+import { isValid } from 'date-fns';
 
-export default function NewsCard({ article }: { article: NewsArticle }) {
+export default function NewsCard({
+  article,
+  section,
+}: {
+  article: NewsArticle;
+  section: string;
+}) {
   const {
     title,
     content,
@@ -22,18 +29,19 @@ export default function NewsCard({ article }: { article: NewsArticle }) {
     position_expire_time,
   } = article.news_obj;
 
-  // Parse ISO string safely
-  const dateToFormat = position_expire_time ? new Date(position_expire_time) : null;
-  const isValidDate = dateToFormat instanceof Date && !isNaN(dateToFormat.getTime());
+  // Parse and validate the input time
+  let parsedDate = position_expire_time ? new Date(position_expire_time) : null;
+  const now = new Date();
 
-  // Format only if valid
-  const formattedDate = isValidDate
-    ? formatInTimeZone(dateToFormat, 'Asia/Kolkata', 'yyyy-MM-dd')
-    : 'Invalid date';
+  const isYearMismatch =
+    parsedDate && isValid(parsedDate) && parsedDate.getFullYear() !== now.getFullYear();
 
-  const formattedTime = isValidDate
-    ? formatInTimeZone(dateToFormat, 'Asia/Kolkata', 'HH:mm:ss')
-    : 'Invalid time';
+  if (!parsedDate || !isValid(parsedDate) || isYearMismatch) {
+    parsedDate = now; // fallback to current time
+  }
+
+  const formattedDate = formatInTimeZone(parsedDate, 'Asia/Kolkata', 'yyyy-MM-dd');
+  const formattedTime = formatInTimeZone(parsedDate, 'Asia/Kolkata', 'HH:mm:ss');
 
   return (
     <Card className="flex flex-col h-full overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
@@ -58,18 +66,14 @@ export default function NewsCard({ article }: { article: NewsArticle }) {
             <User className="w-3.5 h-3.5" />
             <span>{author_name}</span>
           </div>
-          {isValidDate && (
-            <>
-              <div className="flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5" />
-                <span>{formattedDate}</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5" />
-                <span>{formattedTime}</span>
-              </div>
-            </>
-          )}
+          <div className="flex items-center gap-1.5">
+            <Calendar className="w-3.5 h-3.5" />
+            <span>{formattedDate}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Clock className="w-3.5 h-3.5" />
+            <span>{formattedTime}</span>
+          </div>
         </div>
         <Button
           asChild
