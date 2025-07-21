@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Globe, User, Calendar, Clock } from 'lucide-react';
+import { Globe, User, Calendar } from 'lucide-react';
 import { formatInTimeZone } from 'date-fns-tz';
 import { isValid } from 'date-fns';
 
@@ -43,7 +43,6 @@ export default function NewsCard({
   }
 
   const formattedDate = formatInTimeZone(parsedDate, 'Asia/Kolkata', 'yyyy-MM-dd');
-  const formattedTime = formatInTimeZone(parsedDate, 'Asia/Kolkata', 'HH:mm:ss');
 
   return (
     <Card className="flex flex-col h-full overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
@@ -71,10 +70,6 @@ export default function NewsCard({
           <div className="flex items-center gap-1.5">
             <Calendar className="w-3.5 h-3.5" />
             <span>{formattedDate}</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <Clock className="w-3.5 h-3.5" />
-            <span>{formattedTime}</span>
           </div>
         </div>
         <Button
