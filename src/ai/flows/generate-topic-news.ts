@@ -64,6 +64,13 @@ const generateTopicNewsFlow = ai.defineFlow(
     name: 'generateTopicNewsFlow',
     inputSchema: GenerateTopicNewsInputSchema,
     outputSchema: GenerateTopicNewsOutputSchema,
+    retry: {
+      maxAttempts: 3,
+      backoff: {
+        delay: '2s',
+        multiplier: 2,
+      },
+    },
   },
   async (input) => {
     const { output } = await prompt(input);

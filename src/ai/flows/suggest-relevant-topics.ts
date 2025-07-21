@@ -8,8 +8,8 @@
  * - SuggestRelevantTopicsOutput - The return type for the suggestRelevantTopics function.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { ai } from '@/ai/genkit';
+import { z } from 'genkit';
 
 const SuggestRelevantTopicsInputSchema = z.object({
   readingHistory: z
@@ -53,6 +53,13 @@ const suggestRelevantTopicsFlow = ai.defineFlow(
     name: 'suggestRelevantTopicsFlow',
     inputSchema: SuggestRelevantTopicsInputSchema,
     outputSchema: SuggestRelevantTopicsOutputSchema,
+    retry: {
+      maxAttempts: 3,
+      backoff: {
+        delay: '2s',
+        multiplier: 2,
+      },
+    },
   },
   async input => {
     const {output} = await prompt(input);
