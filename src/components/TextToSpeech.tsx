@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Volume2, Pause, Play, StopCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -13,7 +14,28 @@ interface TextToSpeechProps {
 export default function TextToSpeech({ text, lang }: TextToSpeechProps) {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    const loadVoices = () => {
+      const availableVoices = window.speechSynthesis.getVoices();
+      if (availableVoices.length > 0) {
+        setVoices(availableVoices);
+      }
+    };
+
+    loadVoices();
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+
+    return () => {
+      window.speechSynthesis.onvoiceschanged = null;
+      if (window.speechSynthesis.speaking) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
 
   const handleSpeech = useCallback(() => {
     if (!window.speechSynthesis) {
@@ -35,11 +57,10 @@ export default function TextToSpeech({ text, lang }: TextToSpeechProps) {
       }
     } else {
       const utterance = new SpeechSynthesisUtterance(text);
+      utteranceRef.current = utterance;
+
       const languageCode = lang === 'hi' ? 'hi-IN' : 'en-US';
       
-      // Let the browser handle voice selection by default.
-      // We can try to find a specific voice, but it's more robust to let the browser choose.
-      const voices = window.speechSynthesis.getVoices();
       let preferredVoice = voices.find(
         (voice) => voice.lang === languageCode && voice.name.toLowerCase().includes('female')
       );
@@ -64,6 +85,7 @@ export default function TextToSpeech({ text, lang }: TextToSpeechProps) {
       utterance.onend = () => {
         setIsSpeaking(false);
         setIsPaused(false);
+        utteranceRef.current = null;
       };
 
       utterance.onerror = (event) => {
@@ -75,12 +97,13 @@ export default function TextToSpeech({ text, lang }: TextToSpeechProps) {
         });
         setIsSpeaking(false);
         setIsPaused(false);
+        utteranceRef.current = null;
       };
 
-      window.speechSynthesis.cancel(); // Stop any previous speech
+      window.speechSynthesis.cancel();
       window.speechSynthesis.speak(utterance);
     }
-  }, [isSpeaking, isPaused, text, lang, toast]);
+  }, [isSpeaking, isPaused, text, lang, toast, voices]);
   
   const handleStop = (e: React.MouseEvent) => {
       e.stopPropagation();
@@ -92,25 +115,10 @@ export default function TextToSpeech({ text, lang }: TextToSpeechProps) {
   // Cleanup on component unmount
   useEffect(() => {
     return () => {
-      if (window.speechSynthesis && isSpeaking) {
+      if (utteranceRef.current) {
         window.speechSynthesis.cancel();
       }
     };
-  }, [isSpeaking]);
-  
-  // Ensure voices are loaded. This helps prevent issues on first load.
-  useEffect(() => {
-      const onVoicesChanged = () => {
-        // This is just to ensure voices are loaded, no action needed here.
-      };
-      window.speechSynthesis.addEventListener('voiceschanged', onVoicesChanged);
-      // Trigger loading voices if they aren't loaded yet
-      if (window.speechSynthesis.getVoices().length === 0) {
-        window.speechSynthesis.getVoices();
-      }
-      return () => {
-          window.speechSynthesis.removeEventListener('voiceschanged', onVoicesChanged);
-      }
   }, []);
 
   return (
@@ -124,6 +132,7 @@ export default function TextToSpeech({ text, lang }: TextToSpeechProps) {
             }}
             className="text-white hover:bg-white/20 hover:text-white h-8 w-8 rounded-full"
             aria-label={isSpeaking && !isPaused ? "Pause" : "Play"}
+            disabled={voices.length === 0}
         >
             {isSpeaking ? (isPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />) : <Volume2 className="w-4 h-4" />}
         </Button>
