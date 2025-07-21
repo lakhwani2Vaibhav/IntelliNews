@@ -14,6 +14,9 @@ const poppins = Poppins({
 export const metadata: Metadata = {
   title: 'IntelliNews',
   description: 'Your daily dose of news, curated for you.',
+  icons: {
+    icon: '/Intelli News Logo.gif',
+  }
 };
 
 export default function RootLayout({

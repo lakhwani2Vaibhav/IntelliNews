@@ -8,13 +8,14 @@ import NewsFeed from '@/components/NewsFeed';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import TrendingTopics from '@/components/TrendingTopics';
 import SuggestedTopics from '@/components/SuggestedTopics';
-import { Newspaper, Flame } from 'lucide-react';
+import { Flame } from 'lucide-react';
 import { generateTopicNews } from '@/ai/flows/generate-topic-news';
 import { generateSuggestedNews } from '@/ai/flows/generate-suggested-news';
 import { generateId } from '@/lib/utils';
 import { Separator } from './ui/separator';
 import { Sparkles } from 'lucide-react';
 import NewsCard from './NewsCard';
+import Image from 'next/image';
 
 function NewsExplorerContent() {
   const [lang, setLang] = useState<'en' | 'hi'>('en');
@@ -246,7 +247,7 @@ function NewsExplorerContent() {
       <Sidebar>
         <SidebarHeader className="p-4 border-b">
           <h1 className="text-2xl font-bold text-primary flex items-center gap-2">
-            <Newspaper className="w-7 h-7" />
+            <Image src="/Intelli News Logo.gif" alt="IntelliNews Logo" width={28} height={28} />
             IntelliNews
           </h1>
         </SidebarHeader>
