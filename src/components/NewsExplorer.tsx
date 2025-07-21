@@ -16,9 +16,12 @@ import { Separator } from './ui/separator';
 import { Sparkles } from 'lucide-react';
 import NewsCard from './NewsCard';
 import Image from 'next/image';
+import AES from 'crypto-js/aes';
+import Utf8 from 'crypto-js/enc-utf8';
 
-// This will be null during server-side rendering and will be set on the client.
+
 let apiSecret: string | null = null;
+let encryptionKey: string | null = null;
 
 function NewsExplorerContent() {
   const [lang, setLang] = useState<'en' | 'hi'>('en');
@@ -39,13 +42,18 @@ function NewsExplorerContent() {
   const sidebar = useSidebar();
 
   const fetchApi = useCallback(async (url: string) => {
-    // We defer reading the env var to the client side to avoid bundling it in the server build
     if (apiSecret === null) {
       apiSecret = process.env.NEXT_PUBLIC_API_SECRET_KEY || '';
     }
+    if (encryptionKey === null) {
+        encryptionKey = process.env.NEXT_PUBLIC_ENCRYPTION_KEY || '';
+    }
+
+    const encryptedSecret = AES.encrypt(apiSecret, encryptionKey).toString();
+
     const res = await fetch(url, {
         headers: {
-            'X-API-Secret': apiSecret,
+            'X-API-Secret': encryptedSecret,
         }
     });
     if (res.status === 403) {
@@ -123,13 +131,15 @@ function NewsExplorerContent() {
   }, [lang, fetchTrendingTopics]);
   
   useEffect(() => {
+    // Only fetch data when lang or selectedTopic changes
+    // Not when page changes, that's handled by handleLoadMore
     fetchData(false);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lang, selectedTopic, selectedAiTopic]);
   
   useEffect(() => {
-    if (page > 1 && selectedTopic) {
-      fetchData(true);
+    if (page > 1) {
+        fetchData(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page]);
@@ -246,6 +256,7 @@ function NewsExplorerContent() {
     if (selectedTopic) {
         setPage(prev => prev + 1);
     } else {
+        // This is for top stories infinite scroll
         fetchData(true);
     }
   };
@@ -299,7 +310,7 @@ function NewsExplorerContent() {
                 <Sparkles className="w-6 h-6 text-primary" />
                 <h2 className="text-xl font-bold">Suggested For You</h2>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {suggestedNews.map(article => (
                   <NewsCard key={article.hash_id} article={article} />
                 ))}
