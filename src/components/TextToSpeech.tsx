@@ -58,7 +58,7 @@ export default function TextToSpeech({ text, lang }: TextToSpeechProps) {
       }
 
       utterance.lang = languageCode;
-      utterance.rate = 1.4; // Increased speed
+      utterance.rate = 1.2; // Increased speed
       utterance.pitch = 1;
       utterance.volume = 1; // Max volume
 
