@@ -174,7 +174,7 @@ function NewsExplorerContent() {
             author_name: article.author_name,
             position_expire_time: Math.floor(Date.now() / 1000),
             image_url: `https://placehold.co/600x400.png`,
-            source_url: '#',
+            source_url: article.source_url,
             shortened_url: '',
             category: article.category,
           }
@@ -234,7 +234,7 @@ function NewsExplorerContent() {
             author_name: article.author_name,
             position_expire_time: Math.floor(Date.now() / 1000),
             image_url: `https://placehold.co/600x400.png`,
-            source_url: '#',
+            source_url: article.source_url,
             shortened_url: '',
           }
         }));

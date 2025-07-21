@@ -15,6 +15,7 @@ const GeneratedArticleSchema = z.object({
   title: z.string().describe('A compelling, news-style headline for the article. Should be concise and engaging.'),
   content: z.string().describe('A short summary of the news article, typically 2-3 sentences long, similar to the style of Inshorts.'),
   author_name: z.string().describe("The name of the author or news agency, e.g., 'Tech Correspondent' or 'Market Analyst'."),
+  source_url: z.string().url().describe('A plausible but fictional URL for the source of the news article.'),
 });
 
 const GenerateTopicNewsInputSchema = z.object({
@@ -43,12 +44,12 @@ export async function generateTopicNews(
 
 const prompt = ai.definePrompt({
   name: 'generateTopicNewsPrompt',
-  input: { schema: GenerateTopicNewsInputSchema },
+  input: { schema: GenerateTopicNewsInputSchema.extend({ currentDate: z.string() }) },
   output: { schema: GenerateTopicNewsOutputSchema },
   prompt: `You are an expert news writer for a service like Inshorts. Your task is to generate {{numberOfArticles}} fictional, short, and engaging news summaries based on the provided topic, in the specified language.
 
-The generated articles should be plausible but clearly fictional. Do not use real, current events.
-Each article must include a title, a short content summary (like a news blurb), and a plausible author name (like 'Sports Analyst' or 'Science Reporter').
+The generated articles should be plausible but clearly fictional. Do not use real, current events. The articles should seem recent, as if they happened within the last week. For context, today's date is {{currentDate}}.
+Each article must include a title, a short content summary (like a news blurb), a plausible author name (like 'Sports Analyst' or 'Science Reporter'), and a plausible but fictional source URL.
 
 Language: {{{language}}}
 Topic: {{{topic}}}
@@ -73,7 +74,8 @@ const generateTopicNewsFlow = ai.defineFlow(
     },
   },
   async (input) => {
-    const { output } = await prompt(input);
+    const currentDate = new Date().toISOString().split('T')[0];
+    const { output } = await prompt({...input, currentDate});
     return output!;
   }
 );
