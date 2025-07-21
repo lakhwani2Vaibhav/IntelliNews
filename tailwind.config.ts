@@ -87,10 +87,22 @@ export default {
           },
         },
         'fire-flicker': {
-          '0%, 100%': { transform: 'scale(1, 1) translateY(0)' },
-          '25%': { transform: 'scale(1.1, 0.9) translateY(-1px)' },
-          '50%': { transform: 'scale(0.9, 1.1) translateY(1px)' },
-          '75%': { transform: 'scale(1.05, 0.95) translateY(0)' },
+          '0%, 100%': {
+            transform: 'scale(1, 1) translateY(0)',
+            filter: 'drop-shadow(0 0 2px #fef08a)',
+          },
+          '25%': {
+            transform: 'scale(1.1, 0.9) translateY(-1px)',
+            filter: 'drop-shadow(0 0 5px #fde047)',
+          },
+          '50%': {
+            transform: 'scale(0.9, 1.1) translateY(1px)',
+            filter: 'drop-shadow(0 0 2px #fef08a)',
+          },
+          '75%': {
+            transform: 'scale(1.05, 0.95) translateY(0)',
+            filter: 'drop-shadow(0 0 8px #facc15)',
+          },
         }
       },
       animation: {
