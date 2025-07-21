@@ -11,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Globe, User, Calendar } from 'lucide-react';
 import { formatInTimeZone } from 'date-fns-tz';
+import { isValid } from 'date-fns';
 
 export default function NewsCard({
   article,
@@ -28,8 +29,19 @@ export default function NewsCard({
     position_expire_time,
   } = article.news_obj;
 
-  const timestamp = (position_expire_time || Date.now() / 1000) * 1000;
-  const dateToFormat = new Date(timestamp);
+  let dateToFormat: Date;
+  
+  // Robustly check if the timestamp is a valid number and creates a valid date.
+  if (typeof position_expire_time === 'number' && !isNaN(position_expire_time)) {
+    const d = new Date(position_expire_time * 1000);
+    if (isValid(d)) {
+      dateToFormat = d;
+    } else {
+      dateToFormat = new Date(); // Fallback for invalid date from a number
+    }
+  } else {
+    dateToFormat = new Date(); // Fallback for null, undefined, or non-numeric types
+  }
   
   const formattedDate = formatInTimeZone(dateToFormat, 'Asia/Kolkata', 'yyyy-MM-dd');
 
@@ -37,7 +49,7 @@ export default function NewsCard({
     <Card className="flex flex-col h-full overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
       <div className="relative w-full h-48">
         <Image
-          src={image_url}
+          src={image_url || `https://placehold.co/600x400.png`}
           alt={title}
           fill
           objectFit="cover"
