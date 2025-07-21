@@ -308,7 +308,9 @@ function NewsExplorerContent() {
         </SidebarHeader>
         <SidebarContent>
           <SidebarGroup>
-            <SidebarGroupLabel className="flex items-center gap-2"><Flame /> Trending Topics</SidebarGroupLabel>
+            <SidebarGroupLabel className="flex items-center gap-2">
+              <Flame className="text-accent animate-fire-flicker" /> Trending Topics
+            </SidebarGroupLabel>
             <TrendingTopics
               topics={trendingTopics}
               selectedTopic={selectedTopic}
