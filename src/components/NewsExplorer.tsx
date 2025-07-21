@@ -61,7 +61,7 @@ function NewsExplorerContent() {
       padding: Pkcs7
     });
 
-    const encryptedPayload = encrypted.ciphertext.toString(Utf8);
+    const encryptedPayload = encrypted.toString();
 
     const res = await fetch(url, {
         headers: {

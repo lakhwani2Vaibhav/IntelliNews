@@ -1,7 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import AES from 'crypto-js/aes';
 import Utf8 from 'crypto-js/enc-utf8';
-import Json from 'crypto-js/enc-json';
 import ECB from 'crypto-js/mode-ecb';
 import Pkcs7 from 'crypto-js/pad-pkcs7';
 
@@ -32,15 +31,17 @@ export async function GET(
   try {
     const key = Utf8.parse(ENCRYPTION_KEY);
     const decryptedBytes = AES.decrypt(
-      { ciphertext: Utf8.parse(encryptedPayload) },
+      encryptedPayload,
       key,
       { mode: ECB, padding: Pkcs7 }
     );
     
-    // The decrypted data is a JSON string, so we need to parse it
     const decryptedDataString = Utf8.stringify(decryptedBytes);
+    if (!decryptedDataString) {
+      throw new Error("Decryption resulted in empty string");
+    }
+    
     const decryptedPayload = JSON.parse(decryptedDataString);
-
     const { apiSecret: decryptedSecret, timestamp } = decryptedPayload;
     
     if (decryptedSecret !== API_SECRET) {
@@ -54,6 +55,7 @@ export async function GET(
     }
 
   } catch (e) {
+    console.error("Decryption Error:", e);
     return NextResponse.json({ error: 'Forbidden: Decryption failed' }, { status: 403 });
   }
 
