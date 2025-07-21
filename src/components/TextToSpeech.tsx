@@ -14,28 +14,8 @@ interface TextToSpeechProps {
 export default function TextToSpeech({ text, lang }: TextToSpeechProps) {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
-  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const { toast } = useToast();
-
-  useEffect(() => {
-    const loadVoices = () => {
-      const availableVoices = window.speechSynthesis.getVoices();
-      if (availableVoices.length > 0) {
-        setVoices(availableVoices);
-      }
-    };
-
-    loadVoices();
-    window.speechSynthesis.onvoiceschanged = loadVoices;
-
-    return () => {
-      window.speechSynthesis.onvoiceschanged = null;
-      if (window.speechSynthesis.speaking) {
-        window.speechSynthesis.cancel();
-      }
-    };
-  }, []);
 
   const handleSpeech = useCallback(() => {
     if (!window.speechSynthesis) {
@@ -60,6 +40,7 @@ export default function TextToSpeech({ text, lang }: TextToSpeechProps) {
       utteranceRef.current = utterance;
 
       const languageCode = lang === 'hi' ? 'hi-IN' : 'en-US';
+      const voices = window.speechSynthesis.getVoices();
       
       let preferredVoice = voices.find(
         (voice) => voice.lang === languageCode && voice.name.toLowerCase().includes('female')
@@ -103,7 +84,7 @@ export default function TextToSpeech({ text, lang }: TextToSpeechProps) {
       window.speechSynthesis.cancel();
       window.speechSynthesis.speak(utterance);
     }
-  }, [isSpeaking, isPaused, text, lang, toast, voices]);
+  }, [isSpeaking, isPaused, text, lang, toast]);
   
   const handleStop = (e: React.MouseEvent) => {
       e.stopPropagation();
@@ -115,7 +96,7 @@ export default function TextToSpeech({ text, lang }: TextToSpeechProps) {
   // Cleanup on component unmount
   useEffect(() => {
     return () => {
-      if (utteranceRef.current) {
+      if (window.speechSynthesis && window.speechSynthesis.speaking) {
         window.speechSynthesis.cancel();
       }
     };
@@ -132,7 +113,6 @@ export default function TextToSpeech({ text, lang }: TextToSpeechProps) {
             }}
             className="text-white hover:bg-white/20 hover:text-white h-8 w-8 rounded-full"
             aria-label={isSpeaking && !isPaused ? "Pause" : "Play"}
-            disabled={voices.length === 0}
         >
             {isSpeaking ? (isPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />) : <Volume2 className="w-4 h-4" />}
         </Button>
