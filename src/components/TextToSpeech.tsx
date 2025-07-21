@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Volume2, Pause, Play, StopCircle } from 'lucide-react';
+import { Volume2, Pause, Play } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface TextToSpeechProps {
@@ -55,8 +55,9 @@ export default function TextToSpeech({ text, lang }: TextToSpeechProps) {
       }
 
       utterance.lang = languageCode;
-      utterance.rate = 0.9;
+      utterance.rate = 1.1; // Increased speed
       utterance.pitch = 1;
+      utterance.volume = 1; // Max volume
 
       utterance.onstart = () => {
         setIsSpeaking(true);
@@ -85,13 +86,6 @@ export default function TextToSpeech({ text, lang }: TextToSpeechProps) {
       window.speechSynthesis.speak(utterance);
     }
   }, [isSpeaking, isPaused, text, lang, toast]);
-  
-  const handleStop = (e: React.MouseEvent) => {
-      e.stopPropagation();
-      window.speechSynthesis.cancel();
-      setIsSpeaking(false);
-      setIsPaused(false);
-  }
 
   // Cleanup on component unmount
   useEffect(() => {
@@ -116,17 +110,6 @@ export default function TextToSpeech({ text, lang }: TextToSpeechProps) {
         >
             {isSpeaking ? (isPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />) : <Volume2 className="w-4 h-4" />}
         </Button>
-        {isSpeaking && (
-             <Button
-                size="icon"
-                variant="ghost"
-                onClick={handleStop}
-                className="text-white hover:bg-white/20 hover:text-white h-8 w-8 rounded-full"
-                aria-label="Stop"
-            >
-                <StopCircle className="w-4 h-4" />
-            </Button>
-        )}
     </div>
   );
 }
