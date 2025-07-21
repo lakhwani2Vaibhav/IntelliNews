@@ -1,11 +1,10 @@
 "use client";
 
-import { useCallback, useRef, useEffect } from 'react';
+import { useCallback, useRef } from 'react';
 import type { NewsArticle } from '@/lib/types';
 import NewsCard from './NewsCard';
 import { Loader } from '@/components/ui/loader';
 import { NewsCardSkeleton } from './NewsCardSkeleton';
-import { Button } from './ui/button';
 
 interface NewsFeedProps {
   news: NewsArticle[];
@@ -16,11 +15,11 @@ interface NewsFeedProps {
   isTopStories: boolean;
 }
 
-export default function NewsFeed({ news, isLoading, isLoadingMore, hasMore, onLoadMore, isTopStories }: NewsFeedProps) {
+export default function NewsFeed({ news, isLoading, isLoadingMore, hasMore, onLoadMore }: NewsFeedProps) {
   const observer = useRef<IntersectionObserver>();
   
   const lastElementRef = useCallback((node: HTMLDivElement) => {
-    if (isLoadingMore || isTopStories) return; 
+    if (isLoadingMore) return; 
     if (observer.current) observer.current.disconnect();
     
     observer.current = new IntersectionObserver(entries => {
@@ -30,13 +29,7 @@ export default function NewsFeed({ news, isLoading, isLoadingMore, hasMore, onLo
     });
 
     if (node) observer.current.observe(node);
-  }, [isLoadingMore, hasMore, onLoadMore, isTopStories]);
-  
-  useEffect(() => {
-    if (isTopStories && observer.current) {
-        observer.current.disconnect();
-    }
-  }, [isTopStories]);
+  }, [isLoadingMore, hasMore, onLoadMore]);
 
   if (isLoading) {
     return (
@@ -54,7 +47,7 @@ export default function NewsFeed({ news, isLoading, isLoadingMore, hasMore, onLo
     <>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {news.map((article, index) => {
-          if (news.length === index + 1 && !isTopStories) {
+          if (news.length === index + 1) {
             return (
               <div ref={lastElementRef} key={article.hash_id}>
                 <NewsCard article={article} />
@@ -67,15 +60,6 @@ export default function NewsFeed({ news, isLoading, isLoadingMore, hasMore, onLo
       
       {isLoadingMore && <Loader />}
       
-      {isTopStories && hasMore && (
-        <div className="flex justify-center mt-8">
-          <Button onClick={onLoadMore} disabled={isLoadingMore}>
-            {isLoadingMore ? <Loader className="mr-2" /> : null}
-            Load More
-          </Button>
-        </div>
-      )}
-
       {!hasMore && news.length > 0 && (
         <p className="text-center text-muted-foreground py-4">You've reached the end!</p>
       )}
