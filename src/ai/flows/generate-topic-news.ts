@@ -58,6 +58,13 @@ Generate {{numberOfArticles}} articles related to this topic.
 
 Output the articles in the requested JSON format. The text content (title, content, author_name) should be in {{{language}}}.
 `,
+  retry: {
+    maxAttempts: 3,
+    backoff: {
+      delay: '2s',
+      multiplier: 2,
+    },
+  },
 });
 
 const generateTopicNewsFlow = ai.defineFlow(

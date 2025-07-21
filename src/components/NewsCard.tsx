@@ -11,11 +11,10 @@ import {
 import { Button } from '@/components/ui/button';
 import { Globe, User, Calendar } from 'lucide-react';
 import { formatInTimeZone } from 'date-fns-tz';
-import { isValid } from 'date-fns';
 
 export default function NewsCard({
   article,
-  section = 'news',
+  section,
 }: {
   article: NewsArticle;
   section?: string;
@@ -29,20 +28,10 @@ export default function NewsCard({
     position_expire_time,
   } = article.news_obj;
 
-  // Parse and validate the input time
-  let parsedDate: Date;
-
-  if (position_expire_time && typeof position_expire_time === 'number') {
-    parsedDate = new Date(position_expire_time * 1000);
-  } else {
-    parsedDate = new Date();
-  }
-
-  if (!isValid(parsedDate)) {
-    parsedDate = new Date(); // fallback to current time if parsing fails
-  }
-
-  const formattedDate = formatInTimeZone(parsedDate, 'Asia/Kolkata', 'yyyy-MM-dd');
+  const timestamp = (position_expire_time || Date.now() / 1000) * 1000;
+  const dateToFormat = new Date(timestamp);
+  
+  const formattedDate = formatInTimeZone(dateToFormat, 'Asia/Kolkata', 'yyyy-MM-dd');
 
   return (
     <Card className="flex flex-col h-full overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
@@ -52,7 +41,7 @@ export default function NewsCard({
           alt={title}
           fill
           objectFit="cover"
-          data-ai-hint={`${section} article`}
+          data-ai-hint={`${section || 'news'} article`}
         />
       </div>
       <CardHeader>
