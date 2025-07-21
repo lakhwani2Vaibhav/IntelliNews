@@ -36,6 +36,9 @@ export default function TextToSpeech({ text, lang }: TextToSpeechProps) {
         setIsPaused(true);
       }
     } else {
+      // Cancel any ongoing speech before starting a new one
+      window.speechSynthesis.cancel();
+      
       const utterance = new SpeechSynthesisUtterance(text);
       utteranceRef.current = utterance;
 
@@ -72,27 +75,29 @@ export default function TextToSpeech({ text, lang }: TextToSpeechProps) {
 
       utterance.onerror = (event) => {
         console.error('SpeechSynthesisUtterance.onerror', event);
-        toast({
-            variant: 'destructive',
-            title: 'Speech Error',
-            description: 'Could not play the audio. The selected language or voice may not be supported on your browser.',
-        });
+        // Removed toast per user request
         setIsSpeaking(false);
         setIsPaused(false);
         utteranceRef.current = null;
       };
-
-      window.speechSynthesis.cancel();
+      
       window.speechSynthesis.speak(utterance);
     }
   }, [isSpeaking, isPaused, text, lang, toast]);
 
   // Cleanup on component unmount
   useEffect(() => {
-    return () => {
-      if (window.speechSynthesis && window.speechSynthesis.speaking) {
+    const handleBeforeUnload = () => {
+      if (window.speechSynthesis) {
         window.speechSynthesis.cancel();
       }
+    };
+  
+    window.addEventListener('beforeunload', handleBeforeUnload);
+  
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      handleBeforeUnload(); // Also cancel on component unmount
     };
   }, []);
 
@@ -102,6 +107,7 @@ export default function TextToSpeech({ text, lang }: TextToSpeechProps) {
             size="icon"
             variant="ghost"
             onClick={(e) => {
+                e.preventDefault();
                 e.stopPropagation();
                 handleSpeech();
             }}
