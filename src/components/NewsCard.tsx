@@ -3,11 +3,11 @@ import type { NewsArticle } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Globe, User, Calendar } from 'lucide-react';
-import { format } from 'date-fns';
+import { formatInTimeZone } from 'date-fns-tz';
 
 export default function NewsCard({ article }: { article: NewsArticle }) {
   const { title, content, image_url, source_url, author_name, created_at } = article.news_obj;
-  const formattedDate = format(new Date(created_at * 1000), 'MMM dd, yyyy');
+  const formattedDate = formatInTimeZone(new Date(created_at * 1000), 'Asia/Kolkata', 'MMM dd, yyyy');
 
   return (
     <Card className="flex flex-col h-full overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
