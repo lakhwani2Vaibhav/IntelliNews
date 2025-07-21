@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
 const INSHORTS_API_URL = 'https://inshorts.com/api';
+const API_SECRET = process.env.API_SECRET_KEY;
 
 const handleApiError = (error: unknown, defaultMessage: string) => {
   const message = error instanceof Error ? error.message : defaultMessage;
@@ -11,6 +12,11 @@ export async function GET(
   req: NextRequest,
   { params }: { params: { slug: string[] } }
 ) {
+  const secret = req.headers.get('X-API-Secret');
+  if (secret !== API_SECRET) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+
   const { searchParams } = new URL(req.url);
   const lang = searchParams.get('lang') || 'en';
   const slugPath = params.slug ? params.slug.join('/') : '';

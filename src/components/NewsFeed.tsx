@@ -12,7 +12,6 @@ interface NewsFeedProps {
   isLoadingMore: boolean;
   hasMore: boolean;
   onLoadMore: () => void;
-  isTopStories: boolean;
 }
 
 export default function NewsFeed({ news, isLoading, isLoadingMore, hasMore, onLoadMore }: NewsFeedProps) {

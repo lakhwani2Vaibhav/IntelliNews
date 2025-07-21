@@ -17,6 +17,9 @@ import { Sparkles } from 'lucide-react';
 import NewsCard from './NewsCard';
 import Image from 'next/image';
 
+// This will be null during server-side rendering and will be set on the client.
+let apiSecret: string | null = null;
+
 function NewsExplorerContent() {
   const [lang, setLang] = useState<'en' | 'hi'>('en');
   const [trendingTopics, setTrendingTopics] = useState<TrendingTopic[]>([]);
@@ -35,20 +38,34 @@ function NewsExplorerContent() {
   const { toast } = useToast();
   const sidebar = useSidebar();
 
+  const fetchApi = useCallback(async (url: string) => {
+    // We defer reading the env var to the client side to avoid bundling it in the server build
+    if (apiSecret === null) {
+      apiSecret = process.env.NEXT_PUBLIC_API_SECRET_KEY || '';
+    }
+    const res = await fetch(url, {
+        headers: {
+            'X-API-Secret': apiSecret,
+        }
+    });
+    if (res.status === 403) {
+      throw new Error("Forbidden: Invalid API Secret");
+    }
+    if (!res.ok) {
+        throw new Error('Failed to fetch data');
+    }
+    return res.json();
+  }, []);
+
   const fetchTrendingTopics = useCallback(async (currentLang: 'en' | 'hi') => {
     try {
-      const res = await fetch(`/api/news/trending-list?lang=${currentLang}`);
-      if (!res.ok) throw new Error('Failed to fetch trending topics');
-      const json: ApiResponse<{ trending_tags: TrendingTopic[] }> = await res.json();
+      const json: ApiResponse<{ trending_tags: TrendingTopic[] }> = await fetchApi(`/api/news/trending-list?lang=${currentLang}`);
       setTrendingTopics(json.data.trending_tags || []);
     } catch (error) {
-        toast({ variant: 'destructive', title: 'Error', description: 'Could not load trending topics.' });
+        const message = error instanceof Error ? error.message : 'Could not load trending topics.';
+        toast({ variant: 'destructive', title: 'Error', description: message });
     }
-  }, [toast]);
-
-  useEffect(() => {
-    fetchTrendingTopics(lang);
-  }, [lang, fetchTrendingTopics]);
+  }, [toast, fetchApi]);
 
   const fetchData = useCallback(async (isLoadMore = false) => {
     if (selectedAiTopic) return;
@@ -70,10 +87,7 @@ function NewsExplorerContent() {
         url = `/api/news/get-news?lang=${lang}${offsetParam}`;
       }
       
-      const res = await fetch(url);
-      if (!res.ok) throw new Error('Failed to fetch news');
-
-      const json: ApiResponse<GeneralNewsResponseData | TopicNewsResponseData> = await res.json();
+      const json: ApiResponse<GeneralNewsResponseData | TopicNewsResponseData> = await fetchApi(url);
       const newArticles = json.data.news_list || [];
       
       if (!isLoadMore && page === 1 && selectedTopic && newArticles.length === 0) {
@@ -96,13 +110,18 @@ function NewsExplorerContent() {
       }
 
     } catch (error) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Could not load news articles.' });
+      const message = error instanceof Error ? error.message : 'Could not load news articles.';
+      toast({ variant: 'destructive', title: 'Error', description: message });
     } finally {
       setIsLoading(false);
       setIsLoadingMore(false);
     }
-  }, [lang, nextPageOffset, selectedAiTopic, selectedTopic, toast, page]);
+  }, [lang, nextPageOffset, selectedAiTopic, selectedTopic, toast, page, fetchApi]);
 
+  useEffect(() => {
+    fetchTrendingTopics(lang);
+  }, [lang, fetchTrendingTopics]);
+  
   useEffect(() => {
     fetchData(false);
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -294,7 +313,6 @@ function NewsExplorerContent() {
             isLoadingMore={isLoadingMore}
             hasMore={hasMore}
             onLoadMore={handleLoadMore}
-            isTopStories={!selectedTopic && !selectedAiTopic}
           />
         </main>
       </SidebarInset>
