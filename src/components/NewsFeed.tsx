@@ -13,9 +13,10 @@ interface NewsFeedProps {
   hasMore: boolean;
   onLoadMore: () => void;
   selectedAiTopic?: string | null;
+  lang: 'en' | 'hi';
 }
 
-export default function NewsFeed({ news, isLoading, isLoadingMore, hasMore, onLoadMore, selectedAiTopic }: NewsFeedProps) {
+export default function NewsFeed({ news, isLoading, isLoadingMore, hasMore, onLoadMore, selectedAiTopic, lang }: NewsFeedProps) {
   const observer = useRef<IntersectionObserver>();
   
   const lastElementRef = useCallback((node: HTMLDivElement) => {
@@ -51,6 +52,7 @@ export default function NewsFeed({ news, isLoading, isLoadingMore, hasMore, onLo
             <NewsCard 
               article={article} 
               section={selectedAiTopic || 'news'}
+              lang={lang}
             />
           );
           if (news.length === index + 1) {

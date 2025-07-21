@@ -12,13 +12,16 @@ import { Button } from '@/components/ui/button';
 import { Globe, User, Calendar } from 'lucide-react';
 import { formatInTimeZone } from 'date-fns-tz';
 import { isValid } from 'date-fns';
+import TextToSpeech from './TextToSpeech';
 
 export default function NewsCard({
   article,
   section,
+  lang,
 }: {
   article: NewsArticle;
   section?: string;
+  lang: 'en' | 'hi';
 }) {
   const {
     title,
@@ -45,6 +48,8 @@ export default function NewsCard({
   
   const formattedDate = formatInTimeZone(dateToFormat, 'Asia/Kolkata', 'yyyy-MM-dd');
 
+  const textToRead = `${title}. ${content}`;
+
   return (
     <Card className="flex flex-col h-full overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
       <div className="relative w-full h-48">
@@ -55,6 +60,9 @@ export default function NewsCard({
           objectFit="cover"
           data-ai-hint={`${section || 'news'} article`}
         />
+        <div className="absolute bottom-2 left-2">
+          <TextToSpeech text={textToRead} lang={lang} />
+        </div>
       </div>
       <CardHeader>
         <CardTitle className="text-lg font-bold leading-tight">{title}</CardTitle>
