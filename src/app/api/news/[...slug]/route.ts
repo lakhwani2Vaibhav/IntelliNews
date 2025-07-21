@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
 const INSHORTS_API_URL = 'https://inshorts.com/api';
-const API_SECRET = process.env.API_SECRET_KEY;
+const API_SECRET = process.env.NEXT_PUBLIC_API_SECRET_KEY;
 
 const handleApiError = (error: unknown, defaultMessage: string) => {
   const message = error instanceof Error ? error.message : defaultMessage;
