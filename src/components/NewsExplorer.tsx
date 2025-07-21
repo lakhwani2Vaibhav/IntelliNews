@@ -324,7 +324,7 @@ function NewsExplorerContent() {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {suggestedNews.map(article => (
-                  <NewsCard key={article.hash_id} article={article} />
+                  <NewsCard key={article.hash_id} article={article} section={article.news_obj.category || 'news'} />
                 ))}
               </div>
               <Separator className="my-8" />
@@ -336,6 +336,7 @@ function NewsExplorerContent() {
             isLoadingMore={isLoadingMore}
             hasMore={hasMore}
             onLoadMore={handleLoadMore}
+            selectedAiTopic={selectedAiTopic}
           />
         </main>
       </SidebarInset>

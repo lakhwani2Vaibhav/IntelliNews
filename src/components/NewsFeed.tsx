@@ -12,9 +12,10 @@ interface NewsFeedProps {
   isLoadingMore: boolean;
   hasMore: boolean;
   onLoadMore: () => void;
+  selectedAiTopic?: string | null;
 }
 
-export default function NewsFeed({ news, isLoading, isLoadingMore, hasMore, onLoadMore }: NewsFeedProps) {
+export default function NewsFeed({ news, isLoading, isLoadingMore, hasMore, onLoadMore, selectedAiTopic }: NewsFeedProps) {
   const observer = useRef<IntersectionObserver>();
   
   const lastElementRef = useCallback((node: HTMLDivElement) => {
@@ -46,14 +47,20 @@ export default function NewsFeed({ news, isLoading, isLoadingMore, hasMore, onLo
     <>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {news.map((article, index) => {
+          const card = (
+            <NewsCard 
+              article={article} 
+              section={selectedAiTopic || 'news'}
+            />
+          );
           if (news.length === index + 1) {
             return (
               <div ref={lastElementRef} key={article.hash_id}>
-                <NewsCard article={article} />
+                {card}
               </div>
             );
           }
-          return <NewsCard key={article.hash_id} article={article} />;
+          return <div key={article.hash_id}>{card}</div>;
         })}
       </div>
       

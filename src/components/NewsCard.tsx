@@ -15,10 +15,10 @@ import { isValid } from 'date-fns';
 
 export default function NewsCard({
   article,
-  section,
+  section = 'news',
 }: {
   article: NewsArticle;
-  section: string;
+  section?: string;
 }) {
   const {
     title,
@@ -30,14 +30,16 @@ export default function NewsCard({
   } = article.news_obj;
 
   // Parse and validate the input time
-  let parsedDate = position_expire_time ? new Date(position_expire_time) : null;
-  const now = new Date();
+  let parsedDate: Date;
 
-  const isYearMismatch =
-    parsedDate && isValid(parsedDate) && parsedDate.getFullYear() !== now.getFullYear();
+  if (position_expire_time && typeof position_expire_time === 'number') {
+    parsedDate = new Date(position_expire_time * 1000);
+  } else {
+    parsedDate = new Date();
+  }
 
-  if (!parsedDate || !isValid(parsedDate) || isYearMismatch) {
-    parsedDate = now; // fallback to current time
+  if (!isValid(parsedDate)) {
+    parsedDate = new Date(); // fallback to current time if parsing fails
   }
 
   const formattedDate = formatInTimeZone(parsedDate, 'Asia/Kolkata', 'yyyy-MM-dd');
@@ -51,7 +53,7 @@ export default function NewsCard({
           alt={title}
           fill
           objectFit="cover"
-          data-ai-hint="news article"
+          data-ai-hint={`${section} article`}
         />
       </div>
       <CardHeader>
