@@ -45,16 +45,19 @@ export default function TextToSpeech({ text, lang }: TextToSpeechProps) {
       const languageCode = lang === 'hi' ? 'hi-IN' : 'en-US';
       const voices = window.speechSynthesis.getVoices();
       
-      let preferredVoice = voices.find(
-        (voice) => voice.lang === languageCode && voice.name.toLowerCase().includes('female')
-      );
+      // Only select a specific voice for Hindi
+      if (lang === 'hi') {
+        let preferredVoice = voices.find(
+          (voice) => voice.lang === languageCode && voice.name.toLowerCase().includes('female')
+        );
 
-      if (!preferredVoice) {
-        preferredVoice = voices.find((voice) => voice.lang === languageCode);
-      }
-      
-      if (preferredVoice) {
-        utterance.voice = preferredVoice;
+        if (!preferredVoice) {
+          preferredVoice = voices.find((voice) => voice.lang === languageCode);
+        }
+        
+        if (preferredVoice) {
+          utterance.voice = preferredVoice;
+        }
       }
 
       utterance.lang = languageCode;
