@@ -7,7 +7,12 @@ import { formatInTimeZone } from 'date-fns-tz';
 
 export default function NewsCard({ article }: { article: NewsArticle }) {
   const { title, content, image_url, source_url, author_name, position_expire_time } = article.news_obj;
-  const dateToFormat = position_expire_time ? new Date(position_expire_time * 1000) : new Date();
+  
+  // Ensure position_expire_time is a valid number before creating a date from it.
+  const dateToFormat = (typeof position_expire_time === 'number' && !isNaN(position_expire_time))
+    ? new Date(position_expire_time * 1000) 
+    : new Date();
+
   const formattedDate = formatInTimeZone(dateToFormat, 'Asia/Kolkata', 'yyyy-MM-dd');
   const formattedTime = formatInTimeZone(dateToFormat, 'Asia/Kolkata', 'HH:mm:ss');
 
@@ -17,7 +22,7 @@ export default function NewsCard({ article }: { article: NewsArticle }) {
         <Image
           src={image_url}
           alt={title}
-          layout="fill"
+          fill
           objectFit="cover"
           data-ai-hint="news article"
         />
