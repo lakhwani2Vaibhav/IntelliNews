@@ -266,7 +266,7 @@ function NewsExplorerContent() {
         <header className="sticky top-0 z-10 flex items-center justify-between p-4 bg-background/80 backdrop-blur-sm border-b">
           <div className="flex items-center gap-2 min-w-0">
              <SidebarTrigger className="md:hidden" />
-             <h2 className="text-lg md:text-xl font-semibold text-foreground truncate">
+             <h2 className="text-lg md:text-xl font-semibold text-foreground">
                 {getHeaderTitle()}
              </h2>
           </div>
@@ -279,7 +279,7 @@ function NewsExplorerContent() {
                 <Sparkles className="w-6 h-6 text-primary" />
                 <h2 className="text-xl font-bold">Suggested For You</h2>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-6">
                 {suggestedNews.map(article => (
                   <NewsCard key={article.hash_id} article={article} />
                 ))}
