@@ -37,24 +37,19 @@ export default function TextToSpeech({ text, lang }: TextToSpeechProps) {
       const utterance = new SpeechSynthesisUtterance(text);
       const languageCode = lang === 'hi' ? 'hi-IN' : 'en-US';
       
-      let voices = window.speechSynthesis.getVoices();
-      let femaleVoice = voices.find(
-        (voice) =>
-          voice.lang === languageCode && voice.name.toLowerCase().includes('female')
+      // Let the browser handle voice selection by default.
+      // We can try to find a specific voice, but it's more robust to let the browser choose.
+      const voices = window.speechSynthesis.getVoices();
+      let preferredVoice = voices.find(
+        (voice) => voice.lang === languageCode && voice.name.toLowerCase().includes('female')
       );
 
-      if (!femaleVoice) {
-         femaleVoice = voices.find((voice) => voice.lang === languageCode);
+      if (!preferredVoice) {
+        preferredVoice = voices.find((voice) => voice.lang === languageCode);
       }
       
-      if (femaleVoice) {
-        utterance.voice = femaleVoice;
-      } else if (voices.length > 0) {
-        // Fallback to the first available voice for the language if no female voice is found
-        const fallbackVoice = voices.find(v => v.lang.startsWith(lang));
-        if (fallbackVoice) {
-            utterance.voice = fallbackVoice;
-        }
+      if (preferredVoice) {
+        utterance.voice = preferredVoice;
       }
 
       utterance.lang = languageCode;
@@ -76,7 +71,7 @@ export default function TextToSpeech({ text, lang }: TextToSpeechProps) {
         toast({
             variant: 'destructive',
             title: 'Speech Error',
-            description: 'Could not play the audio for this article.',
+            description: 'Could not play the audio. The selected language or voice may not be supported on your browser.',
         });
         setIsSpeaking(false);
         setIsPaused(false);
@@ -97,20 +92,24 @@ export default function TextToSpeech({ text, lang }: TextToSpeechProps) {
   // Cleanup on component unmount
   useEffect(() => {
     return () => {
-      if (isSpeaking) {
+      if (window.speechSynthesis && isSpeaking) {
         window.speechSynthesis.cancel();
       }
     };
   }, [isSpeaking]);
   
-  // Ensure voices are loaded
+  // Ensure voices are loaded. This helps prevent issues on first load.
   useEffect(() => {
-      const handleVoicesChanged = () => {
-        // Voices loaded, component will re-render if it needs to find a voice.
+      const onVoicesChanged = () => {
+        // This is just to ensure voices are loaded, no action needed here.
       };
-      window.speechSynthesis.addEventListener('voiceschanged', handleVoicesChanged);
+      window.speechSynthesis.addEventListener('voiceschanged', onVoicesChanged);
+      // Trigger loading voices if they aren't loaded yet
+      if (window.speechSynthesis.getVoices().length === 0) {
+        window.speechSynthesis.getVoices();
+      }
       return () => {
-          window.speechSynthesis.removeEventListener('voiceschanged', handleVoicesChanged);
+          window.speechSynthesis.removeEventListener('voiceschanged', onVoicesChanged);
       }
   }, []);
 
