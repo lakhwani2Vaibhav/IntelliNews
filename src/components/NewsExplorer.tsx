@@ -273,6 +273,17 @@ function NewsExplorerContent() {
     }
   };
 
+  const handleGoHome = () => {
+    if (!selectedTopic && !selectedAiTopic) return;
+    setSelectedTopic(null);
+    setSelectedAiTopic(null);
+    setPage(1);
+    setNextPageOffset(null);
+    setSuggestedNews([]);
+    fetchData();
+    closeSidebarOnMobile();
+  }
+
   const getHeaderTitle = () => {
     if (selectedAiTopic) {
       return `AI News for: "${selectedAiTopic}"`
@@ -288,10 +299,12 @@ function NewsExplorerContent() {
     <>
       <Sidebar>
         <SidebarHeader className="p-4 border-b">
-          <h1 className="text-2xl font-bold text-primary flex items-center gap-2">
-            <Image src="/Intelli News Logo.gif" alt="IntelliNews Logo" width={36} height={36} />
-            IntelliNews
-          </h1>
+          <button onClick={handleGoHome} className="w-full text-left">
+            <h1 className="text-2xl font-bold text-primary flex items-center gap-2">
+              <Image src="/Intelli News Logo.gif" alt="IntelliNews Logo" width={36} height={36} />
+              IntelliNews
+            </h1>
+          </button>
         </SidebarHeader>
         <SidebarContent>
           <SidebarGroup>
