@@ -6,7 +6,7 @@ export interface NewsArticle {
     image_url: string;
     source_url: string;
     author_name: string;
-    created_at: number;
+    position_expire_time: number;
     shortened_url: string;
     category?: string;
   };

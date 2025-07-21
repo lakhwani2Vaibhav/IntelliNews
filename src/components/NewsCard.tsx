@@ -6,8 +6,8 @@ import { Globe, User, Calendar } from 'lucide-react';
 import { formatInTimeZone } from 'date-fns-tz';
 
 export default function NewsCard({ article }: { article: NewsArticle }) {
-  const { title, content, image_url, source_url, author_name, created_at } = article.news_obj;
-  const formattedDate = formatInTimeZone(new Date(created_at * 1000), 'Asia/Kolkata', 'MMM dd, yyyy');
+  const { title, content, image_url, source_url, author_name, position_expire_time } = article.news_obj;
+  const formattedDate = formatInTimeZone(new Date(position_expire_time * 1000), 'Asia/Kolkata', 'MMM dd, yyyy');
 
   return (
     <Card className="flex flex-col h-full overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
