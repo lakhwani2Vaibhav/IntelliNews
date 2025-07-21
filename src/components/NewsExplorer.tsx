@@ -247,7 +247,7 @@ function NewsExplorerContent() {
       <Sidebar>
         <SidebarHeader className="p-4 border-b">
           <h1 className="text-2xl font-bold text-primary flex items-center gap-2">
-            <Image src="/Intelli News Logo.gif" alt="IntelliNews Logo" width={28} height={28} />
+            <Image src="/Intelli News Logo.gif" alt="IntelliNews Logo" width={36} height={36} />
             IntelliNews
           </h1>
         </SidebarHeader>
