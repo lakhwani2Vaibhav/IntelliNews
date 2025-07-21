@@ -87,11 +87,10 @@ export default {
           },
         },
         'fire-flicker': {
-          '0%': { transform: 'scale(1, 1) translateY(0)', color: 'hsl(var(--accent))', textShadow: '0 0 10px hsl(var(--accent))' },
-          '25%': { transform: 'scale(1.1, 0.9) translateY(-2px)', color: 'hsl(15, 100%, 60%)', textShadow: '0 0 15px hsl(15, 100%, 60%)' },
-          '50%': { transform: 'scale(0.9, 1.1) translateY(1px)', color: 'hsl(var(--accent))', textShadow: '0 0 10px hsl(var(--accent))' },
-          '75%': { transform: 'scale(1.05, 0.95) translateY(0)', color: 'hsl(30, 100%, 65%)', textShadow: '0 0 20px hsl(30, 100%, 65%)' },
-          '100%': { transform: 'scale(1, 1) translateY(0)', color: 'hsl(var(--accent))', textShadow: '0 0 10px hsl(var(--accent))' },
+          '0%, 100%': { transform: 'scale(1, 1) translateY(0)' },
+          '25%': { transform: 'scale(1.1, 0.9) translateY(-1px)' },
+          '50%': { transform: 'scale(0.9, 1.1) translateY(1px)' },
+          '75%': { transform: 'scale(1.05, 0.95) translateY(0)' },
         }
       },
       animation: {
