@@ -8,7 +8,6 @@ import { formatInTimeZone } from 'date-fns-tz';
 export default function NewsCard({ article }: { article: NewsArticle }) {
   const { title, content, image_url, source_url, author_name, position_expire_time } = article.news_obj;
   
-  // Ensure position_expire_time is a valid number before creating a date from it.
   const dateToFormat = (typeof position_expire_time === 'number' && !isNaN(position_expire_time))
     ? new Date(position_expire_time * 1000) 
     : new Date();
