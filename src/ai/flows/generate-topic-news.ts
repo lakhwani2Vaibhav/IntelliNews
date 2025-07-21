@@ -15,7 +15,7 @@ const GeneratedArticleSchema = z.object({
   title: z.string().describe('A compelling, news-style headline for the article. Should be concise and engaging.'),
   content: z.string().describe('A short summary of the news article, typically 2-3 sentences long, similar to the style of Inshorts.'),
   author_name: z.string().describe("The name of the author or news agency, e.g., 'Tech Correspondent' or 'Market Analyst'."),
-  source_url: z.string().url().describe('A plausible but fictional URL for the source of the news article.'),
+  source_url: z.string().describe('A plausible but fictional URL for the source of the news article.'),
 });
 
 const GenerateTopicNewsInputSchema = z.object({

@@ -16,7 +16,7 @@ const GeneratedArticleSchema = z.object({
   content: z.string().describe('A short summary of the news article, typically 2-3 sentences long, similar to the style of Inshorts.'),
   author_name: z.string().describe("The name of the author or news agency, e.g., 'Tech Correspondent' or 'Market Analyst'."),
   category: z.string().describe("The category of the news, e.g., 'Technology', 'Sports', 'Business'."),
-  source_url: z.string().url().describe('A plausible but fictional URL for the source of the news article.'),
+  source_url: z.string().describe('A plausible but fictional URL for the source of the news article.'),
 });
 
 const GenerateSuggestedNewsInputSchema = z.object({
