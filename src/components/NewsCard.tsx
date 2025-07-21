@@ -8,10 +8,11 @@ import { formatInTimeZone } from 'date-fns-tz';
 export default function NewsCard({ article }: { article: NewsArticle }) {
   const { title, content, image_url, source_url, author_name, position_expire_time } = article.news_obj;
 
-  // Use a fallback timestamp only if position_expire_time is null or undefined.
+  // Use a fallback timestamp only if position_expire_time is null, undefined, or not a valid number.
   // This prevents invalid values from being passed to the Date constructor.
   // Multiplying by 1000 converts the UNIX timestamp (in seconds) to milliseconds.
-  const timestamp = (position_expire_time ?? (Date.now() / 1000)) * 1000;
+  const isValidTimestamp = typeof position_expire_time === 'number' && !isNaN(position_expire_time);
+  const timestamp = (isValidTimestamp ? position_expire_time : (Date.now() / 1000)) * 1000;
   const dateToFormat = new Date(timestamp);
 
   const formattedDate = formatInTimeZone(dateToFormat, 'Asia/Kolkata', 'yyyy-MM-dd');
