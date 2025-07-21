@@ -7,7 +7,8 @@ import { formatInTimeZone } from 'date-fns-tz';
 
 export default function NewsCard({ article }: { article: NewsArticle }) {
   const { title, content, image_url, source_url, author_name, position_expire_time } = article.news_obj;
-  const formattedDate = formatInTimeZone(new Date(position_expire_time * 1000), 'Asia/Kolkata', 'MMM dd, yyyy');
+  const dateToFormat = position_expire_time ? new Date(position_expire_time * 1000) : new Date();
+  const formattedDate = formatInTimeZone(dateToFormat, 'Asia/Kolkata', 'MMM dd, yyyy');
 
   return (
     <Card className="flex flex-col h-full overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
