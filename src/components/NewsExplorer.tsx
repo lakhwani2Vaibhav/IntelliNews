@@ -18,7 +18,8 @@ import NewsCard from './NewsCard';
 import Image from 'next/image';
 import AES from 'crypto-js/aes';
 import Utf8 from 'crypto-js/enc-utf8';
-
+import ECB from 'crypto-js/mode-ecb';
+import Pkcs7 from 'crypto-js/pad-pkcs7';
 
 let apiSecret: string | null = null;
 let encryptionKey: string | null = null;
@@ -49,15 +50,29 @@ function NewsExplorerContent() {
         encryptionKey = process.env.NEXT_PUBLIC_ENCRYPTION_KEY || '';
     }
 
-    const encryptedSecret = AES.encrypt(apiSecret, encryptionKey).toString();
+    const payload = {
+      apiSecret: apiSecret,
+      timestamp: Date.now(),
+    };
+
+    const key = Utf8.parse(encryptionKey);
+    const encrypted = AES.encrypt(JSON.stringify(payload), key, {
+      mode: ECB,
+      padding: Pkcs7
+    });
+
+    const encryptedPayload = encrypted.ciphertext.toString(Utf8);
 
     const res = await fetch(url, {
         headers: {
-            'X-API-Secret': encryptedSecret,
+            'X-API-Secret': encryptedPayload,
         }
     });
     if (res.status === 403) {
       throw new Error("Forbidden: Invalid API Secret");
+    }
+    if (res.status === 408) {
+      throw new Error("Request timed out. Please try again.");
     }
     if (!res.ok) {
         throw new Error('Failed to fetch data');
@@ -131,14 +146,12 @@ function NewsExplorerContent() {
   }, [lang, fetchTrendingTopics]);
   
   useEffect(() => {
-    // Only fetch data when lang or selectedTopic changes
-    // Not when page changes, that's handled by handleLoadMore
     fetchData(false);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lang, selectedTopic, selectedAiTopic]);
+  }, [lang, selectedTopic]);
   
   useEffect(() => {
-    if (page > 1) {
+    if (page > 1 && selectedTopic) {
         fetchData(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -256,7 +269,6 @@ function NewsExplorerContent() {
     if (selectedTopic) {
         setPage(prev => prev + 1);
     } else {
-        // This is for top stories infinite scroll
         fetchData(true);
     }
   };
