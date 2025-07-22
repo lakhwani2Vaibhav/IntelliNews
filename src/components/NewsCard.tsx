@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import type { NewsArticle } from '@/lib/types';
 import {
   Card,
@@ -53,11 +52,10 @@ export default function NewsCard({
   return (
     <Card className="flex flex-col h-full overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
       <div className="relative w-full h-48">
-        <Image
+        <img
           src={image_url || `https://placehold.co/600x400.png`}
           alt={title}
-          fill
-          objectFit="cover"
+          className="absolute inset-0 w-full h-full object-cover"
           data-ai-hint={`${section || 'news'} article`}
         />
         <div className="absolute bottom-2 left-2">
