@@ -73,7 +73,8 @@ export default function StartupFeed() {
 
     useEffect(() => {
         fetchItems(false);
-    }, [fetchItems]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     if (isLoading) {
         return (
