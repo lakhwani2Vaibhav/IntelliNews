@@ -8,7 +8,7 @@ import NewsFeed from '@/components/NewsFeed';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import TrendingTopics from '@/components/TrendingTopics';
 import SuggestedTopics from '@/components/SuggestedTopics';
-import { Flame, Newspaper } from 'lucide-react';
+import { Flame, Newspaper, Rocket } from 'lucide-react';
 import { generateTopicNews } from '@/ai/flows/generate-topic-news';
 import { generateSuggestedNews } from '@/ai/flows/generate-suggested-news';
 import { generateId } from '@/lib/utils';
@@ -21,6 +21,7 @@ import Utf8 from 'crypto-js/enc-utf8';
 import ECB from 'crypto-js/mode-ecb';
 import Pkcs7 from 'crypto-js/pad-pkcs7';
 import ArticleFeed from './ArticleFeed';
+import StartupFeed from './StartupFeed';
 import { Button } from './ui/button';
 
 let apiSecret: string | null = null;
@@ -40,7 +41,7 @@ function NewsExplorerContent() {
   const [hasMore, setHasMore] = useState(true);
   const [readingHistory, setReadingHistory] = useState<string[]>([]);
   const [isAiNewsLoading, setIsAiNewsLoading] = useState(false);
-  const [activeSection, setActiveSection] = useState<'news' | 'articles'>('news');
+  const [activeSection, setActiveSection] = useState<'news' | 'articles' | 'startup'>('news');
 
   const { toast } = useToast();
   const sidebar = useSidebar();
@@ -293,7 +294,7 @@ function NewsExplorerContent() {
     closeSidebarOnMobile();
   }
 
-  const handleSelectSection = (section: 'news' | 'articles') => {
+  const handleSelectSection = (section: 'news' | 'articles' | 'startup') => {
     setActiveSection(section);
     setSelectedTopic(null);
     setSelectedAiTopic(null);
@@ -303,6 +304,9 @@ function NewsExplorerContent() {
   const getHeaderTitle = () => {
     if (activeSection === 'articles') {
         return 'Articles';
+    }
+    if (activeSection === 'startup') {
+        return 'Startup & Tech Ecosystem';
     }
     if (selectedAiTopic) {
       return `AI News for: "${selectedAiTopic}"`
@@ -328,6 +332,12 @@ function NewsExplorerContent() {
         <SidebarContent>
             <SidebarGroup>
                 <SidebarMenu>
+                    <SidebarMenuItem>
+                        <Button variant={activeSection === 'startup' ? 'secondary' : 'ghost'} className="w-full justify-start" onClick={() => handleSelectSection('startup')}>
+                            <Rocket className="mr-2 h-4 w-4" />
+                            Startup & Tech
+                        </Button>
+                    </SidebarMenuItem>
                     <SidebarMenuItem>
                         <Button variant={activeSection === 'articles' ? 'secondary' : 'ghost'} className="w-full justify-start" onClick={() => handleSelectSection('articles')}>
                             <Newspaper className="mr-2 h-4 w-4" />
@@ -365,6 +375,8 @@ function NewsExplorerContent() {
         <main className="p-4 md:p-6">
           {activeSection === 'articles' ? (
              <ArticleFeed />
+          ) : activeSection === 'startup' ? (
+              <StartupFeed />
           ) : (
             <>
               {suggestedNews.length > 0 && !selectedTopic && !selectedAiTopic && (
@@ -408,3 +420,5 @@ export default function NewsExplorer() {
     </div>
   );
 }
+
+    
