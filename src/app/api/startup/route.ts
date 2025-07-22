@@ -1,7 +1,14 @@
 import { type NextRequest, NextResponse } from 'next/server';
+import AES from 'crypto-js/aes';
+import Utf8 from 'crypto-js/enc-utf8';
+import ECB from 'crypto-js/mode-ecb';
+import Pkcs7 from 'crypto-js/pad-pkcs7';
 
 const BASE_MEDIAL_API = "https://prod.medial.app/api/v3/news";
 const ACCESS_TOKEN = process.env.MEDIAL_API_ACCESS_TOKEN;
+const API_SECRET = process.env.NEXT_PUBLIC_API_SECRET_KEY;
+const ENCRYPTION_KEY = process.env.NEXT_PUBLIC_ENCRYPTION_KEY;
+const REQUEST_TOLERANCE_MS = 30000; // 30 seconds
 
 const headers = {
     "access-token": ACCESS_TOKEN || '',
@@ -11,6 +18,46 @@ const headers = {
 };
 
 export async function GET(req: NextRequest) {
+    const encryptedPayload = req.headers.get('X-API-Secret');
+    
+    if (!API_SECRET || !ENCRYPTION_KEY) {
+        return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
+    }
+
+    if (!encryptedPayload) {
+        return NextResponse.json({ error: 'Forbidden: Missing secret' }, { status: 403 });
+    }
+
+    try {
+        const key = Utf8.parse(ENCRYPTION_KEY);
+        const decryptedBytes = AES.decrypt(
+        encryptedPayload,
+        key,
+        { mode: ECB, padding: Pkcs7 }
+        );
+        
+        const decryptedDataString = Utf8.stringify(decryptedBytes);
+        if (!decryptedDataString) {
+        throw new Error("Decryption resulted in empty string");
+        }
+        
+        const decryptedPayload = JSON.parse(decryptedDataString);
+        const { apiSecret: decryptedSecret, timestamp } = decryptedPayload;
+        
+        if (decryptedSecret !== API_SECRET) {
+        return NextResponse.json({ error: 'Forbidden: Invalid secret' }, { status: 403 });
+        }
+
+        const requestTime = new Date(timestamp);
+        const now = new Date();
+        if (now.getTime() - requestTime.getTime() > REQUEST_TOLERANCE_MS) {
+            return NextResponse.json({ error: 'Forbidden: Stale request' }, { status: 408 });
+        }
+    } catch (e) {
+        console.error("Decryption Error:", e);
+        return NextResponse.json({ error: 'Forbidden: Decryption failed' }, { status: 403 });
+    }
+
     if (!ACCESS_TOKEN) {
         return NextResponse.json({ error: 'Server configuration error: Missing access token' }, { status: 500 });
     }

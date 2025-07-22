@@ -8,7 +8,11 @@ import { NewsCardSkeleton } from './NewsCardSkeleton';
 import StartupCard from './StartupCard';
 import QuizCard from './QuizCard';
 
-export default function StartupFeed() {
+interface StartupFeedProps {
+    fetchApi: (url: string, options?: RequestInit) => Promise<any>;
+}
+
+export default function StartupFeed({ fetchApi }: StartupFeedProps) {
     const [items, setItems] = useState<StartupItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -29,12 +33,7 @@ export default function StartupFeed() {
             const segmentParam = isLoadMore && nextSegment ? `?nextSegment=${encodeURIComponent(nextSegment)}` : '';
             const url = `/api/startup${segmentParam}`;
             
-            const res = await fetch(url);
-            if (!res.ok) {
-                throw new Error('Failed to fetch startup feed');
-            }
-
-            const json: StartupApiResponse = await res.json();
+            const json: StartupApiResponse = await fetchApi(url);
             
             if (json.status !== 'success') {
                 throw new Error('API returned an error');
@@ -53,7 +52,7 @@ export default function StartupFeed() {
             setIsLoading(false);
             setIsLoadingMore(false);
         }
-    }, [nextSegment, toast]);
+    }, [nextSegment, toast, fetchApi]);
     
     const lastElementRef = useCallback((node: HTMLDivElement) => {
         if (isLoadingMore) return; 

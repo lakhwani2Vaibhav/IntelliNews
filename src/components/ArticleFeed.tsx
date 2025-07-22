@@ -7,7 +7,11 @@ import { Loader } from '@/components/ui/loader';
 import { NewsCardSkeleton } from './NewsCardSkeleton';
 import ArticleCard from './ArticleCard';
 
-export default function ArticleFeed() {
+interface ArticleFeedProps {
+    fetchApi: (url: string, options?: RequestInit) => Promise<any>;
+}
+
+export default function ArticleFeed({ fetchApi }: ArticleFeedProps) {
     const [articles, setArticles] = useState<Article[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -48,12 +52,7 @@ export default function ArticleFeed() {
             const segmentParam = isLoadMore && nextSegment ? `?nextSegment=${encodeURIComponent(nextSegment)}` : '';
             const url = `/api/articles${segmentParam}`;
             
-            const res = await fetch(url);
-            if (!res.ok) {
-                throw new Error('Failed to fetch articles');
-            }
-
-            const json: ArticlesApiResponse = await res.json();
+            const json: ArticlesApiResponse = await fetchApi(url);
             
             if (json.status !== 'success') {
                 throw new Error('API returned an error');
@@ -72,7 +71,7 @@ export default function ArticleFeed() {
             setIsLoading(false);
             setIsLoadingMore(false);
         }
-    }, [nextSegment, toast]);
+    }, [nextSegment, toast, fetchApi]);
     
     useEffect(() => {
         fetchArticles(false);

@@ -46,7 +46,7 @@ function NewsExplorerContent() {
   const { toast } = useToast();
   const sidebar = useSidebar();
 
-  const fetchApi = useCallback(async (url: string) => {
+  const fetchApi = useCallback(async (url: string, options: RequestInit = {}) => {
     if (apiSecret === null) {
       apiSecret = process.env.NEXT_PUBLIC_API_SECRET_KEY || '';
     }
@@ -68,7 +68,9 @@ function NewsExplorerContent() {
     const encryptedPayload = encrypted.toString();
 
     const res = await fetch(url, {
+        ...options,
         headers: {
+            ...options.headers,
             'X-API-Secret': encryptedPayload,
         }
     });
@@ -374,9 +376,9 @@ function NewsExplorerContent() {
         </header>
         <main className="p-4 md:p-6">
           {activeSection === 'articles' ? (
-             <ArticleFeed />
+             <ArticleFeed fetchApi={fetchApi} />
           ) : activeSection === 'startup' ? (
-              <StartupFeed />
+              <StartupFeed fetchApi={fetchApi} />
           ) : (
             <>
               {suggestedNews.length > 0 && !selectedTopic && !selectedAiTopic && (
@@ -420,5 +422,3 @@ export default function NewsExplorer() {
     </div>
   );
 }
-
-    
