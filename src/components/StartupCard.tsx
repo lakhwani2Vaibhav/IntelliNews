@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Globe, Calendar, Eye, ThumbsUp } from 'lucide-react';
 import { formatInTimeZone } from 'date-fns-tz';
 import { isValid } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 export default function StartupCard({ item }: { item: StartupNewsData }) {
   const {
@@ -28,6 +29,7 @@ export default function StartupCard({ item }: { item: StartupNewsData }) {
   } = item;
 
   const [imgSrc, setImgSrc] = useState(imageUrl || `https://placehold.co/600x400.png`);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   let dateToFormat: Date;
   const d = new Date(publishedAt);
@@ -41,6 +43,8 @@ export default function StartupCard({ item }: { item: StartupNewsData }) {
   const handleImageError = () => {
     setImgSrc(`https://placehold.co/600x400.png`);
   };
+
+  const hasLongText = curatedText && curatedText.length > 150;
 
   return (
     <Card className="flex flex-col h-full overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
@@ -65,7 +69,21 @@ export default function StartupCard({ item }: { item: StartupNewsData }) {
                 <span>{source.name}</span>
             </div>
          )}
-         <CardDescription className="text-sm">{curatedText}</CardDescription>
+         {curatedText && (
+            <div>
+              <CardDescription className={cn("text-sm transition-all duration-300", !isExpanded && hasLongText && "line-clamp-3")}>
+                {curatedText}
+              </CardDescription>
+              {hasLongText && (
+                <button
+                  onClick={() => setIsExpanded(!isExpanded)}
+                  className="text-sm font-semibold text-primary hover:underline mt-2"
+                >
+                  {isExpanded ? 'Read Less' : 'Read More'}
+                </button>
+              )}
+            </div>
+         )}
       </CardContent>
       <CardFooter className="flex flex-col items-start gap-4 pt-4 border-t">
         <div className="flex flex-wrap items-center justify-between w-full text-xs text-muted-foreground">
