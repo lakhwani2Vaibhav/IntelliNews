@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from 'react';
 import type { Article } from '@/lib/article-types';
 import {
   Card,
@@ -21,14 +24,21 @@ export default function ArticleCard({ article }: { article: Article }) {
     bookmarksCount,
   } = article.data;
 
+  const [imgSrc, setImgSrc] = useState(imageUrl || `https://placehold.co/600x400.png`);
+
   const formattedDate = formatInTimeZone(new Date(publishedAt), 'Asia/Kolkata', 'yyyy-MM-dd');
+  
+  const handleImageError = () => {
+    setImgSrc(`https://placehold.co/600x400.png`);
+  };
 
   return (
     <Card className="flex flex-col h-full overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
       <div className="relative w-full h-48">
         <img
-          src={imageUrl || `https://placehold.co/600x400.png`}
+          src={imgSrc}
           alt={title}
+          onError={handleImageError}
           className="absolute inset-0 w-full h-full object-cover"
           data-ai-hint="article feature"
         />
