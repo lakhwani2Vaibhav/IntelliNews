@@ -3,12 +3,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { NewsArticle, TrendingTopic, ApiResponse, GeneralNewsResponseData, TopicNewsResponseData } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
-import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarInset, SidebarGroup, SidebarGroupLabel, SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
+import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarInset, SidebarGroup, SidebarGroupLabel, SidebarTrigger, useSidebar, SidebarMenuItem, SidebarMenu } from '@/components/ui/sidebar';
 import NewsFeed from '@/components/NewsFeed';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import TrendingTopics from '@/components/TrendingTopics';
 import SuggestedTopics from '@/components/SuggestedTopics';
-import { Flame } from 'lucide-react';
+import { Flame, Newspaper } from 'lucide-react';
 import { generateTopicNews } from '@/ai/flows/generate-topic-news';
 import { generateSuggestedNews } from '@/ai/flows/generate-suggested-news';
 import { generateId } from '@/lib/utils';
@@ -20,6 +20,8 @@ import AES from 'crypto-js/aes';
 import Utf8 from 'crypto-js/enc-utf8';
 import ECB from 'crypto-js/mode-ecb';
 import Pkcs7 from 'crypto-js/pad-pkcs7';
+import ArticleFeed from './ArticleFeed';
+import { Button } from './ui/button';
 
 let apiSecret: string | null = null;
 let encryptionKey: string | null = null;
@@ -38,6 +40,7 @@ function NewsExplorerContent() {
   const [hasMore, setHasMore] = useState(true);
   const [readingHistory, setReadingHistory] = useState<string[]>([]);
   const [isAiNewsLoading, setIsAiNewsLoading] = useState(false);
+  const [activeSection, setActiveSection] = useState<'news' | 'articles'>('news');
 
   const { toast } = useToast();
   const sidebar = useSidebar();
@@ -146,12 +149,14 @@ function NewsExplorerContent() {
   }, [lang, fetchTrendingTopics]);
   
   useEffect(() => {
-    fetchData(false);
+    if (activeSection === 'news') {
+        fetchData(false);
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lang, selectedTopic]);
+  }, [lang, selectedTopic, activeSection]);
   
   useEffect(() => {
-    if (page > 1 && selectedTopic) {
+    if (page > 1 && selectedTopic && activeSection === 'news') {
         fetchData(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -159,7 +164,7 @@ function NewsExplorerContent() {
 
 
   useEffect(() => {
-    if (readingHistory.length > 0 && !selectedTopic && !selectedAiTopic) {
+    if (readingHistory.length > 0 && !selectedTopic && !selectedAiTopic && activeSection === 'news') {
       setIsAiNewsLoading(true);
       generateSuggestedNews({
         readingHistory: readingHistory.join(', '),
@@ -188,7 +193,7 @@ function NewsExplorerContent() {
     } else if (!selectedTopic && !selectedAiTopic) {
       setSuggestedNews([]); 
     }
-  }, [readingHistory, selectedTopic, selectedAiTopic, lang]);
+  }, [readingHistory, selectedTopic, selectedAiTopic, lang, activeSection]);
 
   const closeSidebarOnMobile = () => {
     if (sidebar.isMobile) {
@@ -210,6 +215,7 @@ function NewsExplorerContent() {
     setNextPageOffset(null);
     setSelectedAiTopic(null);
     setSuggestedNews([]);
+    setActiveSection('news');
     closeSidebarOnMobile();
   };
 
@@ -222,6 +228,7 @@ function NewsExplorerContent() {
     setNews([]);
     setSuggestedNews([]);
     setHasMore(false);
+    setActiveSection('news');
     closeSidebarOnMobile();
 
     generateTopicNews({ topic, numberOfArticles: 10, language: lang === 'hi' ? 'Hindi' : 'English' })
@@ -260,6 +267,7 @@ function NewsExplorerContent() {
         setReadingHistory([]);
         setSelectedTopic(null);
         setSelectedAiTopic(null);
+        setActiveSection('news');
     }
   };
 
@@ -274,17 +282,28 @@ function NewsExplorerContent() {
   };
 
   const handleGoHome = () => {
-    if (!selectedTopic && !selectedAiTopic) return;
+    if (!selectedTopic && !selectedAiTopic && activeSection === 'news') return;
     setSelectedTopic(null);
     setSelectedAiTopic(null);
     setPage(1);
     setNextPageOffset(null);
     setSuggestedNews([]);
+    setActiveSection('news');
     fetchData();
     closeSidebarOnMobile();
   }
 
+  const handleSelectSection = (section: 'news' | 'articles') => {
+    setActiveSection(section);
+    setSelectedTopic(null);
+    setSelectedAiTopic(null);
+    closeSidebarOnMobile();
+  }
+
   const getHeaderTitle = () => {
+    if (activeSection === 'articles') {
+        return 'Articles';
+    }
     if (selectedAiTopic) {
       return `AI News for: "${selectedAiTopic}"`
     }
@@ -307,6 +326,19 @@ function NewsExplorerContent() {
           </button>
         </SidebarHeader>
         <SidebarContent>
+            <SidebarGroup>
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                        <Button variant={activeSection === 'articles' ? 'secondary' : 'ghost'} className="w-full justify-start" onClick={() => handleSelectSection('articles')}>
+                            <Newspaper className="mr-2 h-4 w-4" />
+                            Articles
+                        </Button>
+                    </SidebarMenuItem>
+                </SidebarMenu>
+            </SidebarGroup>
+
+            <Separator />
+
           <SidebarGroup>
             <SidebarGroupLabel className="flex items-center gap-2">
               <Flame className="text-accent animate-fire-flicker" /> Trending Topics
@@ -317,7 +349,7 @@ function NewsExplorerContent() {
               onSelectTopic={handleSelectTopic}
             />
           </SidebarGroup>
-          <SuggestedTopics readingHistory={readingHistory} onSelectTopic={handleSelectSuggestedTopic} lang={lang} />
+          {activeSection === 'news' && <SuggestedTopics readingHistory={readingHistory} onSelectTopic={handleSelectSuggestedTopic} lang={lang} />}
         </SidebarContent>
       </Sidebar>
       <SidebarInset>
@@ -331,29 +363,35 @@ function NewsExplorerContent() {
           <LanguageSwitcher lang={lang} setLang={handleSetLang} />
         </header>
         <main className="p-4 md:p-6">
-          {suggestedNews.length > 0 && !selectedTopic && !selectedAiTopic && (
-            <div className="mb-8">
-              <div className="flex items-center gap-2 mb-4">
-                <Sparkles className="w-6 h-6 text-primary" />
-                <h2 className="text-xl font-bold">Suggested For You</h2>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {suggestedNews.map(article => (
-                  <NewsCard key={article.hash_id} article={article} section={article.news_obj.category} lang={lang} />
-                ))}
-              </div>
-              <Separator className="my-8" />
-            </div>
+          {activeSection === 'articles' ? (
+             <ArticleFeed />
+          ) : (
+            <>
+              {suggestedNews.length > 0 && !selectedTopic && !selectedAiTopic && (
+                <div className="mb-8">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Sparkles className="w-6 h-6 text-primary" />
+                    <h2 className="text-xl font-bold">Suggested For You</h2>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {suggestedNews.map(article => (
+                      <NewsCard key={article.hash_id} article={article} section={article.news_obj.category} lang={lang} />
+                    ))}
+                  </div>
+                  <Separator className="my-8" />
+                </div>
+              )}
+              <NewsFeed
+                news={news}
+                isLoading={isLoading}
+                isLoadingMore={isLoadingMore}
+                hasMore={hasMore}
+                onLoadMore={handleLoadMore}
+                selectedAiTopic={selectedAiTopic}
+                lang={lang}
+              />
+            </>
           )}
-          <NewsFeed
-            news={news}
-            isLoading={isLoading}
-            isLoadingMore={isLoadingMore}
-            hasMore={hasMore}
-            onLoadMore={handleLoadMore}
-            selectedAiTopic={selectedAiTopic}
-            lang={lang}
-          />
         </main>
       </SidebarInset>
     </>
