@@ -18,7 +18,6 @@ export async function GET(
   req: NextRequest,
   { params }: { params: { slug: string[] } }
 ) {
-  /*
   const encryptedPayload = req.headers.get('X-API-Secret');
   
   if (!API_SECRET || !ENCRYPTION_KEY) {
@@ -59,7 +58,6 @@ export async function GET(
     console.error("Decryption Error:", e);
     return NextResponse.json({ error: 'Forbidden: Decryption failed' }, { status: 403 });
   }
-  */
 
 
   const { searchParams } = new URL(req.url);
