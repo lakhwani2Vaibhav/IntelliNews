@@ -378,7 +378,7 @@ function NewsExplorerContent() {
           {activeSection === 'articles' ? (
              <ArticleFeed fetchApi={fetchApi} />
           ) : activeSection === 'startup' ? (
-              <StartupFeed fetchApi={fetchApi} />
+              <StartupFeed fetchApi={fetchApi} lang={lang} />
           ) : (
             <>
               {suggestedNews.length > 0 && !selectedTopic && !selectedAiTopic && (
@@ -422,3 +422,5 @@ export default function NewsExplorer() {
     </div>
   );
 }
+
+    

@@ -15,8 +15,9 @@ import { Globe, Calendar, Eye, ThumbsUp } from 'lucide-react';
 import { formatInTimeZone } from 'date-fns-tz';
 import { isValid } from 'date-fns';
 import { cn } from '@/lib/utils';
+import TextToSpeech from './TextToSpeech';
 
-export default function StartupCard({ item }: { item: StartupNewsData }) {
+export default function StartupCard({ item, lang }: { item: StartupNewsData, lang: 'en' | 'hi' }) {
   const {
     title,
     imageUrl,
@@ -46,6 +47,8 @@ export default function StartupCard({ item }: { item: StartupNewsData }) {
 
   const hasLongText = curatedText && curatedText.length > 150;
 
+  const textToRead = `${title}. ${curatedText || ''}`;
+
   return (
     <Card className="flex flex-col h-full overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
       <div className="relative w-full h-48">
@@ -56,6 +59,9 @@ export default function StartupCard({ item }: { item: StartupNewsData }) {
           className="absolute inset-0 w-full h-full object-cover"
           data-ai-hint="startup tech"
         />
+        <div className="absolute bottom-2 left-2">
+          <TextToSpeech text={textToRead} lang={lang} />
+        </div>
       </div>
       <CardHeader>
         <CardTitle className="text-lg font-bold leading-tight">{title}</CardTitle>
@@ -117,3 +123,5 @@ export default function StartupCard({ item }: { item: StartupNewsData }) {
     </Card>
   );
 }
+
+    

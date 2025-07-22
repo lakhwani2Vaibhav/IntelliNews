@@ -10,9 +10,10 @@ import QuizCard from './QuizCard';
 
 interface StartupFeedProps {
     fetchApi: (url: string, options?: RequestInit) => Promise<any>;
+    lang: 'en' | 'hi';
 }
 
-export default function StartupFeed({ fetchApi }: StartupFeedProps) {
+export default function StartupFeed({ fetchApi, lang }: StartupFeedProps) {
     const [items, setItems] = useState<StartupItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -93,7 +94,7 @@ export default function StartupFeed({ fetchApi }: StartupFeedProps) {
                 {items.map((item, index) => {
                     let card;
                     if (item.type === 'NEWS') {
-                        card = <StartupCard item={item.data} />;
+                        card = <StartupCard item={item.data} lang={lang} />;
                     } else if (item.type === 'QUIZ') {
                         card = <QuizCard item={item.data} />;
                     } else {
@@ -119,3 +120,5 @@ export default function StartupFeed({ fetchApi }: StartupFeedProps) {
         </>
     );
 }
+
+    
