@@ -6,7 +6,7 @@ export interface StartupItemData {
         displayImage: string;
     };
     imageUrl: string;
-    summary: string[];
+    curatedText: string;
     sourceUrl: string;
     publishedAt: string;
     likesCount: number;
@@ -24,5 +24,3 @@ export interface StartupApiResponse {
     nextSegment: string | null;
     status: string;
 }
-
-    

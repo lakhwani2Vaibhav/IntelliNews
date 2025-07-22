@@ -8,6 +8,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
+  CardDescription,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Globe, Calendar, Eye, ThumbsUp } from 'lucide-react';
@@ -20,7 +21,7 @@ export default function StartupCard({ item }: { item: StartupItem }) {
     sourceUrl,
     source,
     publishedAt,
-    summary,
+    curatedText,
     likesCount,
     viewCount,
   } = item.data;
@@ -54,11 +55,7 @@ export default function StartupCard({ item }: { item: StartupItem }) {
             )}
             <span>{source.name}</span>
          </div>
-         <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
-            {summary.slice(0, 3).map((point, index) => (
-                <li key={index}>{point}</li>
-            ))}
-         </ul>
+         <CardDescription className="text-sm">{curatedText}</CardDescription>
       </CardContent>
       <CardFooter className="flex flex-col items-start gap-4 pt-4 border-t">
         <div className="flex flex-wrap items-center justify-between w-full text-xs text-muted-foreground">
@@ -92,5 +89,3 @@ export default function StartupCard({ item }: { item: StartupItem }) {
     </Card>
   );
 }
-
-    
