@@ -1,9 +1,7 @@
-import Image from 'next/image';
 import type { Article } from '@/lib/article-types';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
@@ -11,6 +9,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Globe, User, Calendar, Heart, Bookmark } from 'lucide-react';
 import { formatInTimeZone } from 'date-fns-tz';
+import Image from 'next/image';
 
 export default function ArticleCard({ article }: { article: Article }) {
   const {
@@ -28,11 +27,10 @@ export default function ArticleCard({ article }: { article: Article }) {
   return (
     <Card className="flex flex-col h-full overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
       <div className="relative w-full h-48">
-        <Image
+        <img
           src={imageUrl || `https://placehold.co/600x400.png`}
           alt={title}
-          fill
-          objectFit="cover"
+          className="absolute inset-0 w-full h-full object-cover"
           data-ai-hint="article feature"
         />
       </div>
@@ -41,7 +39,9 @@ export default function ArticleCard({ article }: { article: Article }) {
       </CardHeader>
       <CardContent className="flex-grow">
          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Image src={source.displayImage} alt={source.name} width={24} height={24} className="rounded-full" />
+            {source.displayImage && (
+              <img src={source.displayImage} alt={source.name} width={24} height={24} className="rounded-full h-6 w-6 object-cover" />
+            )}
             <span>{source.name}</span>
          </div>
       </CardContent>
