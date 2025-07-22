@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader } from '@/components/ui/loader';
 import { NewsCardSkeleton } from './NewsCardSkeleton';
 import StartupCard from './StartupCard';
+import QuizCard from './QuizCard';
 
 export default function StartupFeed() {
     const [items, setItems] = useState<StartupItem[]>([]);
@@ -76,7 +77,7 @@ export default function StartupFeed() {
 
     if (isLoading) {
         return (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: 6 }).map((_, i) => <NewsCardSkeleton key={i} />)}
           </div>
         );
@@ -88,9 +89,17 @@ export default function StartupFeed() {
 
     return (
         <>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {items.map((item, index) => {
-                    const card = <StartupCard item={item} />;
+                    let card;
+                    if (item.type === 'NEWS') {
+                        card = <StartupCard item={item.data} />;
+                    } else if (item.type === 'QUIZ') {
+                        card = <QuizCard item={item.data} />;
+                    } else {
+                        return null; // or a fallback component
+                    }
+
                     if (items.length === index + 1) {
                         return (
                             <div ref={lastElementRef} key={item.id}>
@@ -110,5 +119,3 @@ export default function StartupFeed() {
         </>
     );
 }
-
-    

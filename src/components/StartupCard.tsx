@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import type { StartupItem } from '@/lib/startup-types';
+import type { StartupNewsData } from '@/lib/startup-types';
 import {
   Card,
   CardContent,
@@ -15,7 +15,7 @@ import { Globe, Calendar, Eye, ThumbsUp } from 'lucide-react';
 import { formatInTimeZone } from 'date-fns-tz';
 import { isValid } from 'date-fns';
 
-export default function StartupCard({ item }: { item: StartupItem }) {
+export default function StartupCard({ item }: { item: StartupNewsData }) {
   const {
     title,
     imageUrl,
@@ -25,7 +25,7 @@ export default function StartupCard({ item }: { item: StartupItem }) {
     curatedText,
     likesCount,
     viewCount,
-  } = item.data;
+  } = item;
 
   const [imgSrc, setImgSrc] = useState(imageUrl || `https://placehold.co/600x400.png`);
 
