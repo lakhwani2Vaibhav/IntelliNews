@@ -57,12 +57,14 @@ export default function StartupCard({ item }: { item: StartupItem }) {
         <CardTitle className="text-lg font-bold leading-tight">{title}</CardTitle>
       </CardHeader>
       <CardContent className="flex-grow space-y-4">
-         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            {source.displayImage && (
-              <img src={source.displayImage} alt={source.name} width={24} height={24} className="rounded-full h-6 w-6 object-cover" />
-            )}
-            <span>{source.name}</span>
-         </div>
+         {source && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                {source.displayImage && (
+                <img src={source.displayImage} alt={source.name} width={24} height={24} className="rounded-full h-6 w-6 object-cover" />
+                )}
+                <span>{source.name}</span>
+            </div>
+         )}
          <CardDescription className="text-sm">{curatedText}</CardDescription>
       </CardContent>
       <CardFooter className="flex flex-col items-start gap-4 pt-4 border-t">
