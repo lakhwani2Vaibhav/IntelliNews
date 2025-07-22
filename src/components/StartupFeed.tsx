@@ -18,22 +18,6 @@ export default function StartupFeed() {
 
     const observer = useRef<IntersectionObserver>();
   
-    const lastElementRef = useCallback((node: HTMLDivElement) => {
-        if (isLoadingMore) return; 
-        if (observer.current) observer.current.disconnect();
-        
-        observer.current = new IntersectionObserver(entries => {
-        if (entries[0].isIntersecting && hasMore) {
-            if (items.length > 0) {
-                 fetchItems(true);
-            }
-        }
-        });
-
-        if (node) observer.current.observe(node);
-    }, [isLoadingMore, hasMore, items.length]);
-
-
     const fetchItems = useCallback(async (isLoadMore = false) => {
         if (isLoadMore) {
             setIsLoadingMore(true);
@@ -71,6 +55,22 @@ export default function StartupFeed() {
         }
     }, [nextSegment, toast]);
     
+    const lastElementRef = useCallback((node: HTMLDivElement) => {
+        if (isLoadingMore) return; 
+        if (observer.current) observer.current.disconnect();
+        
+        observer.current = new IntersectionObserver(entries => {
+            if (entries[0].isIntersecting && hasMore) {
+                if (items.length > 0) {
+                     fetchItems(true);
+                }
+            }
+        });
+
+        if (node) observer.current.observe(node);
+    }, [isLoadingMore, hasMore, items.length, fetchItems]);
+
+
     useEffect(() => {
         fetchItems(false);
     }, [fetchItems]);
