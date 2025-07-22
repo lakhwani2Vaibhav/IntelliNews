@@ -13,6 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Globe, Calendar, Eye, ThumbsUp } from 'lucide-react';
 import { formatInTimeZone } from 'date-fns-tz';
+import { isValid } from 'date-fns';
 
 export default function StartupCard({ item }: { item: StartupItem }) {
   const {
@@ -28,7 +29,14 @@ export default function StartupCard({ item }: { item: StartupItem }) {
 
   const [imgSrc, setImgSrc] = useState(imageUrl || `https://placehold.co/600x400.png`);
 
-  const formattedDate = formatInTimeZone(new Date(publishedAt), 'Asia/Kolkata', 'yyyy-MM-dd');
+  let dateToFormat: Date;
+  const d = new Date(publishedAt);
+  if (isValid(d)) {
+    dateToFormat = d;
+  } else {
+    dateToFormat = new Date(); // Fallback for invalid date
+  }
+  const formattedDate = formatInTimeZone(dateToFormat, 'Asia/Kolkata', 'yyyy-MM-dd');
   
   const handleImageError = () => {
     setImgSrc(`https://placehold.co/600x400.png`);
