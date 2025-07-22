@@ -9,7 +9,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Globe, User, Calendar, Heart, Bookmark } from 'lucide-react';
 import { formatInTimeZone } from 'date-fns-tz';
-import Image from 'next/image';
 
 export default function ArticleCard({ article }: { article: Article }) {
   const {
