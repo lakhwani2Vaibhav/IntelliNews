@@ -101,12 +101,10 @@ function NewsContent({ item, lang, index }: { item: StartupNewsData, lang: 'en' 
           <a href={sourceUrl} target="_blank" rel="noopener noreferrer"><Globe className="mr-2 h-4 w-4" />Read Full Story</a>
         </Button>
         
-        {index < 3 && (
-            <div className='flex flex-col items-center justify-center pt-6 text-sm opacity-60 animate-bounce'>
-                <ChevronUp className='w-6 h-6' />
-                <span>Swipe up</span>
-            </div>
-        )}
+        <div className='flex flex-col items-center justify-center pt-6 text-sm opacity-60 animate-bounce'>
+            <ChevronUp className='w-6 h-6' />
+            <span>Swipe up</span>
+        </div>
       </div>
     </div>
   )
@@ -206,12 +204,10 @@ function QuizContent({ item, index }: { item: StartupQuizData, index: number }) 
                         <a href={link.url} target="_blank" rel="noopener noreferrer">Learn More</a>
                     </Button>
                 )}
-                 {index < 3 && (
-                    <div className='flex flex-col items-center justify-center pt-6 text-sm opacity-60 animate-bounce'>
-                        <ChevronUp className='w-6 h-6' />
-                        <span>Swipe up</span>
-                    </div>
-                )}
+                <div className='flex flex-col items-center justify-center pt-6 text-sm opacity-60 animate-bounce'>
+                    <ChevronUp className='w-6 h-6' />
+                    <span>Swipe up</span>
+                </div>
             </div>
         </div>
     )
