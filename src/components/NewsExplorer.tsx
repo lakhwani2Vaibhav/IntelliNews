@@ -8,7 +8,7 @@ import NewsFeed from '@/components/NewsFeed';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import TrendingTopics from '@/components/TrendingTopics';
 import SuggestedTopics from '@/components/SuggestedTopics';
-import { Flame, Newspaper, Rocket } from 'lucide-react';
+import { Flame, Newspaper, Rocket, View, LayoutGrid, Rows3 } from 'lucide-react';
 import { generateTopicNews } from '@/ai/flows/generate-topic-news';
 import { generateSuggestedNews } from '@/ai/flows/generate-suggested-news';
 import { generateId } from '@/lib/utils';
@@ -23,6 +23,8 @@ import Pkcs7 from 'crypto-js/pad-pkcs7';
 import ArticleFeed from './ArticleFeed';
 import StartupFeed from './StartupFeed';
 import { Button } from './ui/button';
+import { useIsMobile } from '@/hooks/use-mobile';
+import ShortsView from './ShortsView';
 
 let apiSecret: string | null = null;
 let encryptionKey: string | null = null;
@@ -42,9 +44,11 @@ function NewsExplorerContent() {
   const [readingHistory, setReadingHistory] = useState<string[]>([]);
   const [isAiNewsLoading, setIsAiNewsLoading] = useState(false);
   const [activeSection, setActiveSection] = useState<'news' | 'articles' | 'startup'>('news');
+  const [viewMode, setViewMode] = useState<'grid' | 'shorts'>('grid');
 
   const { toast } = useToast();
   const sidebar = useSidebar();
+  const isMobile = useIsMobile();
 
   const fetchApi = useCallback(async (url: string, options: RequestInit = {}) => {
     if (apiSecret === null) {
@@ -320,6 +324,54 @@ function NewsExplorerContent() {
     return 'Top Stories';
   }
 
+  const renderContent = () => {
+    if (activeSection === 'articles') {
+      return <ArticleFeed fetchApi={fetchApi} />;
+    }
+    if (activeSection === 'startup') {
+      return <StartupFeed fetchApi={fetchApi} lang={lang} />;
+    }
+    
+    // News Section
+    if (isMobile && viewMode === 'shorts') {
+      return <ShortsView 
+                news={news} 
+                isLoading={isLoading} 
+                hasMore={hasMore} 
+                onLoadMore={handleLoadMore} 
+                lang={lang} 
+             />;
+    }
+
+    return (
+      <>
+        {suggestedNews.length > 0 && !selectedTopic && !selectedAiTopic && (
+          <div className="mb-8">
+            <div className="flex items-center gap-2 mb-4">
+              <Sparkles className="w-6 h-6 text-primary" />
+              <h2 className="text-xl font-bold">Suggested For You</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {suggestedNews.map(article => (
+                <NewsCard key={article.hash_id} article={article} section={article.news_obj.category} lang={lang} />
+              ))}
+            </div>
+            <Separator className="my-8" />
+          </div>
+        )}
+        <NewsFeed
+          news={news}
+          isLoading={isLoading}
+          isLoadingMore={isLoadingMore}
+          hasMore={hasMore}
+          onLoadMore={handleLoadMore}
+          selectedAiTopic={selectedAiTopic}
+          lang={lang}
+        />
+      </>
+    );
+  }
+
   return (
     <>
       <Sidebar>
@@ -368,44 +420,21 @@ function NewsExplorerContent() {
         <header className="sticky top-0 z-10 flex items-center justify-between p-4 bg-background/80 backdrop-blur-sm border-b">
           <div className="flex items-center gap-2 min-w-0">
              <SidebarTrigger className="md:hidden" />
-             <h2 className="text-lg md:text-xl font-semibold text-foreground">
+             <h2 className="text-lg md:text-xl font-semibold text-foreground truncate">
                 {getHeaderTitle()}
              </h2>
           </div>
-          <LanguageSwitcher lang={lang} setLang={handleSetLang} />
+          <div className="flex items-center gap-2">
+            {isMobile && activeSection === 'news' && (
+              <Button variant="ghost" size="icon" onClick={() => setViewMode(v => v === 'grid' ? 'shorts' : 'grid')}>
+                {viewMode === 'grid' ? <Rows3 /> : <LayoutGrid />}
+              </Button>
+            )}
+            <LanguageSwitcher lang={lang} setLang={handleSetLang} />
+          </div>
         </header>
-        <main className="p-4 md:p-6">
-          {activeSection === 'articles' ? (
-             <ArticleFeed fetchApi={fetchApi} />
-          ) : activeSection === 'startup' ? (
-              <StartupFeed fetchApi={fetchApi} lang={lang} />
-          ) : (
-            <>
-              {suggestedNews.length > 0 && !selectedTopic && !selectedAiTopic && (
-                <div className="mb-8">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Sparkles className="w-6 h-6 text-primary" />
-                    <h2 className="text-xl font-bold">Suggested For You</h2>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {suggestedNews.map(article => (
-                      <NewsCard key={article.hash_id} article={article} section={article.news_obj.category} lang={lang} />
-                    ))}
-                  </div>
-                  <Separator className="my-8" />
-                </div>
-              )}
-              <NewsFeed
-                news={news}
-                isLoading={isLoading}
-                isLoadingMore={isLoadingMore}
-                hasMore={hasMore}
-                onLoadMore={handleLoadMore}
-                selectedAiTopic={selectedAiTopic}
-                lang={lang}
-              />
-            </>
-          )}
+        <main className={viewMode === 'shorts' && isMobile ? 'h-[calc(100vh-65px)]' : 'p-4 md:p-6'}>
+          {renderContent()}
         </main>
       </SidebarInset>
     </>
@@ -422,5 +451,3 @@ export default function NewsExplorer() {
     </div>
   );
 }
-
-    
