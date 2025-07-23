@@ -1,0 +1,14 @@
+# See https://www.robotstxt.org/robotstxt.html for documentation on how to use the robots.txt file
+#
+# To allow all crawlers to access your website, use:
+# User-agent: *
+# Allow: /
+#
+# To block all crawlers from accessing your website, use:
+# User-agent: *
+# Disallow: /
+
+User-agent: *
+Allow: /
+
+Sitemap: https://www.intellinews.co.in/sitemap.xml

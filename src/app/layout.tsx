@@ -3,7 +3,6 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { Poppins } from 'next/font/google';
 import { Analytics } from "@vercel/analytics/next"
-import Footer from '@/components/Footer';
 
 const poppins = Poppins({ 
   subsets: ['latin'], 
@@ -13,8 +12,8 @@ const poppins = Poppins({
 
 
 export const metadata: Metadata = {
-  title: 'IntelliNews',
-  description: 'Your daily dose of news, curated for you.',
+  title: 'IntelliNews: AI-Powered News, Curated For You',
+  description: 'Welcome to intellinews.co.in, your premier source for AI-powered news. Get personalized summaries, explore trending topics, and experience the future of news consumption.',
   icons: {
     icon: '/Intelli News Logo.gif',
   }
