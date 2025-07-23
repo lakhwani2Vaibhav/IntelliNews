@@ -108,9 +108,11 @@ export default {
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
-        'fire-flicker': 'fire-flicker 1.5s ease-in-out infinite',
+        'fire-flicker': 'fire-flicker 1.5s ease-in-out infinite alternate',
       },
     },
   },
   plugins: [require('tailwindcss-animate')],
 } satisfies Config;
+
+    

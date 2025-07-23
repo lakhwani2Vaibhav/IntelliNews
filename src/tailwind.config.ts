@@ -89,20 +89,30 @@ export default {
         'fire-flicker': {
           '0%, 100%': {
             transform: 'scale(1, 1) translateY(0)',
-            filter: 'drop-shadow(0 0 5px #fef08a)',
+            filter: 'drop-shadow(0 0 2px #fef08a)',
+          },
+          '25%': {
+            transform: 'scale(1.1, 0.9) translateY(-1px)',
+            filter: 'drop-shadow(0 0 5px #fde047)',
           },
           '50%': {
-            transform: 'scale(1.1, 0.9) translateY(-2px)',
-            filter: 'drop-shadow(0 0 15px #fde047)',
+            transform: 'scale(0.9, 1.1) translateY(1px)',
+            filter: 'drop-shadow(0 0 2px #fef08a)',
+          },
+          '75%': {
+            transform: 'scale(1.05, 0.95) translateY(0)',
+            filter: 'drop-shadow(0 0 8px #facc15)',
           },
         }
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
-        'fire-flicker': 'fire-flicker 1s ease-in-out infinite alternate',
+        'fire-flicker': 'fire-flicker 1.5s ease-in-out infinite alternate',
       },
     },
   },
   plugins: [require('tailwindcss-animate')],
 } satisfies Config;
+
+    

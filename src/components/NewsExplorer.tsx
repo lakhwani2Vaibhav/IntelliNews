@@ -8,7 +8,7 @@ import NewsFeed from '@/components/NewsFeed';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import TrendingTopics from '@/components/TrendingTopics';
 import SuggestedTopics from '@/components/SuggestedTopics';
-import { Flame, Newspaper, Rocket, View, LayoutGrid, Rows3 } from 'lucide-react';
+import { Flame, Newspaper, Rocket, View, LayoutGrid, Rows3, Clapperboard } from 'lucide-react';
 import { generateTopicNews } from '@/ai/flows/generate-topic-news';
 import { generateSuggestedNews } from '@/ai/flows/generate-suggested-news';
 import { generateId } from '@/lib/utils';
@@ -25,6 +25,11 @@ import StartupFeed from './StartupFeed';
 import { Button } from './ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
 import ShortsView from './ShortsView';
+import ArticleShortsView from './ArticleShortsView';
+import StartupShortsView from './StartupShortsView';
+
+type ViewMode = 'grid' | 'shorts';
+type Section = 'news' | 'articles' | 'startup' | 'video';
 
 let apiSecret: string | null = null;
 let encryptionKey: string | null = null;
@@ -43,8 +48,8 @@ function NewsExplorerContent() {
   const [hasMore, setHasMore] = useState(true);
   const [readingHistory, setReadingHistory] = useState<string[]>([]);
   const [isAiNewsLoading, setIsAiNewsLoading] = useState(false);
-  const [activeSection, setActiveSection] = useState<'news' | 'articles' | 'startup'>('news');
-  const [viewMode, setViewMode] = useState<'grid' | 'shorts'>('grid');
+  const [activeSection, setActiveSection] = useState<Section>('news');
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
 
   const { toast } = useToast();
   const sidebar = useSidebar();
@@ -300,7 +305,7 @@ function NewsExplorerContent() {
     closeSidebarOnMobile();
   }
 
-  const handleSelectSection = (section: 'news' | 'articles' | 'startup') => {
+  const handleSelectSection = (section: Section) => {
     setActiveSection(section);
     setSelectedTopic(null);
     setSelectedAiTopic(null);
@@ -308,12 +313,10 @@ function NewsExplorerContent() {
   }
 
   const getHeaderTitle = () => {
-    if (activeSection === 'articles') {
-        return 'Articles';
-    }
-    if (activeSection === 'startup') {
-        return 'Startup & Tech Ecosystem';
-    }
+    if (activeSection === 'articles') return 'Articles';
+    if (activeSection === 'startup') return 'Startup & Tech Ecosystem';
+    if (activeSection === 'video') return 'Video Shorts';
+    
     if (selectedAiTopic) {
       return `AI News for: "${selectedAiTopic}"`
     }
@@ -325,51 +328,66 @@ function NewsExplorerContent() {
   }
 
   const renderContent = () => {
-    if (activeSection === 'articles') {
-      return <ArticleFeed fetchApi={fetchApi} />;
-    }
-    if (activeSection === 'startup') {
-      return <StartupFeed fetchApi={fetchApi} lang={lang} />;
-    }
-    
-    // News Section
+    // Shorts View for Mobile
     if (isMobile && viewMode === 'shorts') {
-      return <ShortsView 
+        if (activeSection === 'news') {
+            return <ShortsView 
                 news={news} 
                 isLoading={isLoading} 
                 hasMore={hasMore} 
                 onLoadMore={handleLoadMore} 
                 lang={lang} 
-             />;
+            />;
+        }
+        if (activeSection === 'articles') {
+            return <ArticleShortsView fetchApi={fetchApi} />;
+        }
+        if (activeSection === 'startup') {
+            return <StartupShortsView fetchApi={fetchApi} lang={lang} />;
+        }
+        if (activeSection === 'video') {
+            return <div className="text-center py-20 text-muted-foreground">Video section coming soon!</div>;
+        }
     }
 
-    return (
-      <>
-        {suggestedNews.length > 0 && !selectedTopic && !selectedAiTopic && (
-          <div className="mb-8">
-            <div className="flex items-center gap-2 mb-4">
-              <Sparkles className="w-6 h-6 text-primary" />
-              <h2 className="text-xl font-bold">Suggested For You</h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {suggestedNews.map(article => (
-                <NewsCard key={article.hash_id} article={article} section={article.news_obj.category} lang={lang} />
-              ))}
-            </div>
-            <Separator className="my-8" />
-          </div>
-        )}
-        <NewsFeed
-          news={news}
-          isLoading={isLoading}
-          isLoadingMore={isLoadingMore}
-          hasMore={hasMore}
-          onLoadMore={handleLoadMore}
-          selectedAiTopic={selectedAiTopic}
-          lang={lang}
-        />
-      </>
-    );
+    // Grid View for Desktop and Mobile
+    switch (activeSection) {
+        case 'articles':
+            return <ArticleFeed fetchApi={fetchApi} />;
+        case 'startup':
+            return <StartupFeed fetchApi={fetchApi} lang={lang} />;
+        case 'video':
+             return <div className="text-center py-20 text-muted-foreground">Video section coming soon!</div>;
+        case 'news':
+        default:
+            return (
+            <>
+                {suggestedNews.length > 0 && !selectedTopic && !selectedAiTopic && (
+                <div className="mb-8">
+                    <div className="flex items-center gap-2 mb-4">
+                    <Sparkles className="w-6 h-6 text-primary" />
+                    <h2 className="text-xl font-bold">Suggested For You</h2>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {suggestedNews.map(article => (
+                        <NewsCard key={article.hash_id} article={article} section={article.news_obj.category} lang={lang} />
+                    ))}
+                    </div>
+                    <Separator className="my-8" />
+                </div>
+                )}
+                <NewsFeed
+                    news={news}
+                    isLoading={isLoading}
+                    isLoadingMore={isLoadingMore}
+                    hasMore={hasMore}
+                    onLoadMore={handleLoadMore}
+                    selectedAiTopic={selectedAiTopic}
+                    lang={lang}
+                />
+            </>
+            );
+    }
   }
 
   return (
@@ -387,6 +405,12 @@ function NewsExplorerContent() {
             <SidebarGroup>
                 <SidebarMenu>
                     <SidebarMenuItem>
+                        <Button variant={activeSection === 'news' ? 'secondary' : 'ghost'} className="w-full justify-start" onClick={() => handleSelectSection('news')}>
+                            <Flame className="mr-2 h-4 w-4" />
+                            Top Stories
+                        </Button>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
                         <Button variant={activeSection === 'startup' ? 'secondary' : 'ghost'} className="w-full justify-start" onClick={() => handleSelectSection('startup')}>
                             <Rocket className="mr-2 h-4 w-4" />
                             Startup & Tech
@@ -396,6 +420,12 @@ function NewsExplorerContent() {
                         <Button variant={activeSection === 'articles' ? 'secondary' : 'ghost'} className="w-full justify-start" onClick={() => handleSelectSection('articles')}>
                             <Newspaper className="mr-2 h-4 w-4" />
                             Articles
+                        </Button>
+                    </SidebarMenuItem>
+                     <SidebarMenuItem>
+                        <Button variant={activeSection === 'video' ? 'secondary' : 'ghost'} className="w-full justify-start" onClick={() => handleSelectSection('video')}>
+                            <Clapperboard className="mr-2 h-4 w-4" />
+                            Video
                         </Button>
                     </SidebarMenuItem>
                 </SidebarMenu>
@@ -420,12 +450,12 @@ function NewsExplorerContent() {
         <header className="sticky top-0 z-10 flex items-center justify-between p-4 bg-background/80 backdrop-blur-sm border-b">
           <div className="flex items-center gap-2 min-w-0">
              <SidebarTrigger className="md:hidden" />
-             <h2 className="text-lg md:text-xl font-semibold text-foreground truncate">
+             <h2 className="text-lg md:text-xl font-semibold text-foreground">
                 {getHeaderTitle()}
              </h2>
           </div>
           <div className="flex items-center gap-2">
-            {isMobile && activeSection === 'news' && (
+            {isMobile && activeSection !== 'video' && (
               <Button variant="ghost" size="icon" onClick={() => setViewMode(v => v === 'grid' ? 'shorts' : 'grid')}>
                 {viewMode === 'grid' ? <Rows3 /> : <LayoutGrid />}
               </Button>
@@ -451,3 +481,5 @@ export default function NewsExplorer() {
     </div>
   );
 }
+
+    
