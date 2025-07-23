@@ -57,6 +57,14 @@ function NewsExplorerContent() {
   const sidebar = useSidebar();
   const isMobile = useIsMobile();
 
+  useEffect(() => {
+    if (isMobile) {
+      setViewMode('shorts');
+    } else {
+      setViewMode('grid');
+    }
+  }, [isMobile]);
+
   const fetchApi = useCallback(async (url: string, options: RequestInit = {}) => {
     if (apiSecret === null) {
       apiSecret = process.env.NEXT_PUBLIC_API_SECRET_KEY || '';
@@ -457,7 +465,10 @@ function NewsExplorerContent() {
         )}>
           <div className="flex items-center gap-2 min-w-0">
              <SidebarTrigger className={cn("md:hidden", isShortsView && "text-white hover:bg-white/20 hover:text-white")} />
-             <h2 className={cn("text-lg md:text-xl font-semibold", isShortsView ? "text-white" : "text-foreground")}>
+             <h2 className={cn(
+                "text-lg md:text-xl font-semibold", 
+                isShortsView ? "text-white" : "text-foreground"
+             )}>
                 {getHeaderTitle()}
              </h2>
           </div>

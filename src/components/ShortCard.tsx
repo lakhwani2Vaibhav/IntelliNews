@@ -50,7 +50,7 @@ export default function ShortCard({
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent -z-10" />
 
       <div className="p-4 space-y-4">
-        <div className="absolute top-4 right-4">
+        <div className="flex items-center gap-2">
             <TextToSpeech text={textToRead} lang={lang} />
         </div>
         <h2 className="text-2xl font-bold leading-tight">{title}</h2>
