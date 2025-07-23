@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
@@ -452,11 +453,11 @@ function NewsExplorerContent() {
       <SidebarInset>
         <header className={cn(
             "sticky top-0 z-10 flex items-center justify-between p-4 border-b",
-            isShortsView ? "bg-transparent border-transparent text-white" : "bg-background/80 backdrop-blur-sm"
+            isShortsView ? "bg-transparent border-transparent text-white backdrop-blur-sm" : "bg-background/80 backdrop-blur-sm"
         )}>
           <div className="flex items-center gap-2 min-w-0">
              <SidebarTrigger className={cn("md:hidden", isShortsView && "text-white hover:bg-white/20 hover:text-white")} />
-             <h2 className={cn("text-lg md:text-xl font-semibold whitespace-nowrap truncate", isShortsView ? "text-white" : "text-foreground")}>
+             <h2 className={cn("text-lg md:text-xl font-semibold", isShortsView ? "text-white" : "text-foreground")}>
                 {getHeaderTitle()}
              </h2>
           </div>
@@ -487,7 +488,3 @@ export default function NewsExplorer() {
     </div>
   );
 }
-
-    
-
-    
