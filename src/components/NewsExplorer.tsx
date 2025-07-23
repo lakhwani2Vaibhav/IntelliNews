@@ -340,6 +340,15 @@ function NewsExplorerContent() {
   const renderContent = () => {
     // Shorts View for Mobile
     if (isMobile && viewMode === 'shorts') {
+        const shortsContainer = (
+            <div className='w-full h-full md:max-w-md md:mx-auto'>
+                {activeSection === 'news' && <ShortsView news={news} isLoading={isLoading} hasMore={hasMore} onLoadMore={handleLoadMore} lang={lang} />}
+                {activeSection === 'articles' && <ArticleShortsView fetchApi={fetchApi} />}
+                {activeSection === 'startup' && <StartupShortsView fetchApi={fetchApi} lang={lang} />}
+                {activeSection === 'video' && <div className="text-center py-20 text-white">Video section coming soon!</div>}
+            </div>
+        );
+
         if (activeSection === 'news') {
             return <ShortsView 
                 news={news} 
@@ -465,10 +474,7 @@ function NewsExplorerContent() {
         )}>
           <div className="flex items-center gap-2 min-w-0">
              <SidebarTrigger className={cn("md:hidden", isShortsView && "text-white hover:bg-white/20 hover:text-white")} />
-             <h2 className={cn(
-                "text-lg md:text-xl font-semibold", 
-                isShortsView ? "text-white" : "text-foreground"
-             )}>
+             <h2 className="text-lg md:text-xl font-semibold">
                 {getHeaderTitle()}
              </h2>
           </div>
@@ -481,8 +487,12 @@ function NewsExplorerContent() {
             <LanguageSwitcher lang={lang} setLang={handleSetLang} />
           </div>
         </header>
-        <main className={cn(isShortsView ? 'h-screen w-screen absolute inset-0' : 'p-4 md:p-6')}>
-          {renderContent()}
+        <main className={cn(isShortsView ? 'h-screen w-screen absolute inset-0 bg-black' : 'p-4 md:p-6')}>
+          {isShortsView ? (
+              <div className="w-full h-full md:max-w-md md:mx-auto">
+                  {renderContent()}
+              </div>
+          ) : renderContent() }
         </main>
       </SidebarInset>
     </>
