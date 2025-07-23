@@ -40,7 +40,7 @@ export default function ShortCard({
   const textToRead = `${title}. ${content}`;
 
   return (
-    <div className="relative h-full w-full overflow-hidden flex flex-col justify-end text-white">
+    <div className="relative h-full w-full overflow-hidden rounded-lg flex flex-col justify-end text-white">
       <img
         src={image_url || `https://placehold.co/600x400.png`}
         alt={title}

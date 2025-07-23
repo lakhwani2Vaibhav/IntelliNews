@@ -322,7 +322,7 @@ function NewsExplorerContent() {
     }
     if (selectedTopic) {
       const topicLabel = trendingTopics.find(t => t.tag === selectedTopic)?.label || selectedTopic;
-      return `Showing results for "${topicLabel}"`
+      return `Results for "${topicLabel}"`
     }
     return 'Top Stories';
   }
@@ -450,7 +450,7 @@ function NewsExplorerContent() {
         <header className="sticky top-0 z-10 flex items-center justify-between p-4 bg-background/80 backdrop-blur-sm border-b">
           <div className="flex items-center gap-2 min-w-0">
              <SidebarTrigger className="md:hidden" />
-             <h2 className="text-lg md:text-xl font-semibold text-foreground">
+             <h2 className="text-lg md:text-xl font-semibold text-foreground truncate">
                 {getHeaderTitle()}
              </h2>
           </div>
@@ -463,7 +463,7 @@ function NewsExplorerContent() {
             <LanguageSwitcher lang={lang} setLang={handleSetLang} />
           </div>
         </header>
-        <main className={viewMode === 'shorts' && isMobile ? 'h-[calc(100vh-65px)]' : 'p-4 md:p-6'}>
+        <main className={viewMode === 'shorts' && isMobile ? 'h-[calc(100vh-65px)] p-4' : 'p-4 md:p-6'}>
           {renderContent()}
         </main>
       </SidebarInset>

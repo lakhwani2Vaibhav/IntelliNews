@@ -95,7 +95,9 @@ export default function ArticleShortsView({ fetchApi }: ArticleShortsViewProps) 
       <div className="flex flex-col h-full">
         {articles.map((article) => (
           <div className="flex-shrink-0 w-full h-full relative" key={article.id}>
-            <ArticleShortCard article={article} />
+             <div className="w-full h-full rounded-lg shadow-lg">
+                <ArticleShortCard article={article} />
+             </div>
           </div>
         ))}
         {hasMore && (

@@ -60,7 +60,9 @@ export default function ShortsView({ news, isLoading, hasMore, onLoadMore, lang 
       <div className="flex flex-col h-full">
         {news.map((article) => (
           <div className="flex-shrink-0 w-full h-full relative" key={article.hash_id}>
-            <ShortCard article={article} lang={lang} />
+             <div className="w-full h-full rounded-lg shadow-lg">
+                <ShortCard article={article} lang={lang} />
+             </div>
           </div>
         ))}
         {hasMore && (

@@ -206,7 +206,7 @@ function QuizContent({ item }: { item: StartupQuizData }) {
 
 export default function StartupShortCard({ item, lang, index }: StartupShortCardProps) {
   return (
-    <div className="relative h-full w-full overflow-hidden flex flex-col justify-end text-white">
+    <div className="relative h-full w-full overflow-hidden rounded-lg flex flex-col justify-end text-white">
         {item.type === 'NEWS' ? <NewsContent item={item.data} lang={lang} /> : <QuizContent item={item.data} />}
         
         {index < 3 && (
