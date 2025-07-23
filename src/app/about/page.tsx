@@ -4,7 +4,7 @@ import Footer from '@/components/Footer';
 
 export const metadata: Metadata = {
   title: 'About Us - IntelliNews',
-  description: 'Learn more about IntelliNews, our mission, and our team. We are dedicated to bringing you curated news with cutting-edge technology.',
+  description: 'Learn more about IntelliNews, our mission, and our team. We are dedicated to bringing you curated news with cutting-edge technology at intellinews.co.in.',
 };
 
 export default function AboutPage() {
@@ -17,7 +17,7 @@ export default function AboutPage() {
           </CardHeader>
           <CardContent className="space-y-6 text-lg">
             <p>
-              Welcome to IntelliNews, your premier destination for news consumption, reimagined for the digital age. At IntelliNews, we believe that staying informed should be an intelligent, seamless, and personalized experience. Our platform leverages the power of cutting-edge AI to deliver news that matters most to you, in a format that fits your lifestyle.
+              Welcome to IntelliNews, your premier destination for news consumption, reimagined for the digital age. At IntelliNews, we believe that staying informed should be an intelligent, seamless, and personalized experience. Our platform at <a href="https://www.intellinews.co.in/" className="text-primary hover:underline">intellinews.co.in</a> leverages the power of cutting-edge AI to deliver news that matters most to you, in a format that fits your lifestyle.
             </p>
             <p>
               Our mission is to cut through the noise of the 24/7 news cycle. We curate stories from thousands of sources, providing you with concise, easy-to-digest summaries without sacrificing the essential details. Whether you're catching up on top stories, diving deep into a specific topic, or exploring AI-generated news based on your interests, IntelliNews is your trusted partner.

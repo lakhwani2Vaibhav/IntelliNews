@@ -8,7 +8,7 @@ import Footer from '@/components/Footer';
 
 export const metadata: Metadata = {
   title: 'Contact Us - IntelliNews',
-  description: 'Get in touch with IntelliNews for support, feedback, or inquiries. We are here to help.',
+  description: 'Get in touch with the IntelliNews team for support, feedback, or inquiries. We are here to help you get the most out of your news experience.',
 };
 
 export default function ContactPage() {
@@ -18,7 +18,7 @@ export default function ContactPage() {
         <Card className="w-full max-w-2xl">
           <CardHeader className="text-center">
             <CardTitle className="text-3xl font-bold">Contact Us</CardTitle>
-            <CardDescription>Have a question or feedback? Drop us a line!</CardDescription>
+            <CardDescription>We value your feedback. Whether you have a question, suggestion, or a press inquiry, please don't hesitate to reach out.</CardDescription>
           </CardHeader>
           <CardContent>
             <form className="space-y-6">
