@@ -3,6 +3,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { Poppins } from 'next/font/google';
 import { Analytics } from "@vercel/analytics/next"
+import Footer from '@/components/Footer';
 
 const poppins = Poppins({ 
   subsets: ['latin'], 
