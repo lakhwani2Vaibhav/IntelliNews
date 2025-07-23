@@ -15,6 +15,7 @@ import { Progress } from '@/components/ui/progress';
 type StartupShortCardProps = {
     item: { type: 'NEWS', data: StartupNewsData } | { type: 'QUIZ', data: StartupQuizData };
     lang: 'en' | 'hi';
+    index: number;
 }
 
 function NewsContent({ item, lang }: { item: StartupNewsData, lang: 'en' | 'hi' }) {
@@ -30,6 +31,7 @@ function NewsContent({ item, lang }: { item: StartupNewsData, lang: 'en' | 'hi' 
   } = item;
 
   const [imgSrc, setImgSrc] = useState(imageUrl || `https://placehold.co/600x400.png`);
+  const [isExpanded, setIsExpanded] = useState(false);
   
   let dateToFormat: Date;
   const d = new Date(publishedAt);
@@ -44,6 +46,7 @@ function NewsContent({ item, lang }: { item: StartupNewsData, lang: 'en' | 'hi' 
     setImgSrc(`https://placehold.co/600x400.png`);
   };
 
+  const hasLongText = curatedText && curatedText.length > 150;
   const textToRead = `${title}. ${curatedText || ''}`;
   
   return (
@@ -72,7 +75,21 @@ function NewsContent({ item, lang }: { item: StartupNewsData, lang: 'en' | 'hi' 
             </div>
         )}
 
-        {curatedText && <p className="text-base font-light line-clamp-4">{curatedText}</p>}
+        {curatedText && (
+            <div>
+                <p className={cn("text-base font-light transition-all duration-300", !isExpanded && hasLongText && "line-clamp-3")}>
+                    {curatedText}
+                </p>
+                {hasLongText && (
+                    <button
+                    onClick={() => setIsExpanded(!isExpanded)}
+                    className="text-sm font-semibold text-white/80 hover:underline mt-1"
+                    >
+                    {isExpanded ? 'Read Less' : 'Read More'}
+                    </button>
+                )}
+            </div>
+        )}
 
         <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm opacity-80">
             <div className="flex items-center gap-1.5"><Calendar className="w-4 h-4" /><span>{formattedDate}</span></div>
@@ -187,17 +204,17 @@ function QuizContent({ item }: { item: StartupQuizData }) {
     )
 }
 
-export default function StartupShortCard({ item, lang }: StartupShortCardProps) {
+export default function StartupShortCard({ item, lang, index }: StartupShortCardProps) {
   return (
     <div className="relative h-full w-full overflow-hidden flex flex-col justify-end text-white">
         {item.type === 'NEWS' ? <NewsContent item={item.data} lang={lang} /> : <QuizContent item={item.data} />}
         
-        <div className='absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center justify-center pt-6 text-sm opacity-60 animate-bounce'>
-            <ChevronUp className='w-6 h-6' />
-            <span>Swipe up</span>
-        </div>
+        {index < 3 && (
+            <div className='absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center justify-center pt-6 text-sm opacity-60 animate-bounce'>
+                <ChevronUp className='w-6 h-6' />
+                <span>Swipe up</span>
+            </div>
+        )}
     </div>
   );
 }
-
-    

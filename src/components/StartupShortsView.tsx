@@ -94,9 +94,9 @@ export default function StartupShortsView({ fetchApi, lang }: StartupShortsViewP
   return (
     <div className="overflow-hidden h-full w-full" ref={emblaRef}>
       <div className="flex flex-col h-full">
-        {items.map((item) => (
+        {items.map((item, index) => (
           <div className="flex-shrink-0 w-full h-full relative" key={item.id}>
-            <StartupShortCard item={item} lang={lang} />
+            <StartupShortCard item={item} lang={lang} index={index} />
           </div>
         ))}
         {hasMore && (
