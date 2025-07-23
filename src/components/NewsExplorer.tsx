@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
@@ -314,7 +315,7 @@ function NewsExplorerContent() {
 
   const getHeaderTitle = () => {
     if (activeSection === 'articles') return 'Articles';
-    if (activeSection === 'startup') return 'Startup & Tech Ecosystem';
+    if (activeSection === 'startup') return 'Startup & Tech';
     if (activeSection === 'video') return 'Video Shorts';
     
     if (selectedAiTopic) {
@@ -455,7 +456,7 @@ function NewsExplorerContent() {
         )}>
           <div className="flex items-center gap-2 min-w-0">
              <SidebarTrigger className={cn("md:hidden", isShortsView && "text-white hover:bg-white/20 hover:text-white")} />
-             <h2 className={cn("text-lg md:text-xl font-semibold truncate", isShortsView ? "text-white" : "text-foreground")}>
+             <h2 className={cn("text-lg md:text-xl font-semibold whitespace-nowrap truncate", isShortsView ? "text-white" : "text-foreground")}>
                 {getHeaderTitle()}
              </h2>
           </div>
@@ -486,5 +487,7 @@ export default function NewsExplorer() {
     </div>
   );
 }
+
+    
 
     
