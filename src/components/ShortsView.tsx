@@ -24,7 +24,7 @@ export default function ShortsView({ news, isLoading, hasMore, onLoadMore, lang 
   });
 
   const onSelect = useCallback(() => {
-    if (!emblaApi) return;
+    if (!emblaApi || isLoading) return;
     
     const selectedIndex = emblaApi.selectedScrollSnap();
     const totalSlides = emblaApi.scrollSnapList().length;
@@ -33,7 +33,7 @@ export default function ShortsView({ news, isLoading, hasMore, onLoadMore, lang 
     if (selectedIndex >= threshold && hasMore) {
       onLoadMore();
     }
-  }, [emblaApi, hasMore, onLoadMore]);
+  }, [emblaApi, hasMore, onLoadMore, isLoading]);
 
   useEffect(() => {
     if (!emblaApi) return;
@@ -60,13 +60,11 @@ export default function ShortsView({ news, isLoading, hasMore, onLoadMore, lang 
       <div className="flex flex-col h-full">
         {news.map((article) => (
           <div className="flex-shrink-0 w-full h-full relative" key={article.hash_id}>
-             <div className="w-full h-full rounded-lg shadow-lg">
-                <ShortCard article={article} lang={lang} />
-             </div>
+            <ShortCard article={article} lang={lang} />
           </div>
         ))}
         {hasMore && (
-          <div className="flex-shrink-0 w-full h-full relative flex items-center justify-center">
+          <div className="flex-shrink-0 w-full h-full relative flex items-center justify-center bg-black">
             <Loader />
           </div>
         )}

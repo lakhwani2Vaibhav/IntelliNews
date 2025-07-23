@@ -96,13 +96,11 @@ export default function StartupShortsView({ fetchApi, lang }: StartupShortsViewP
       <div className="flex flex-col h-full">
         {items.map((item, index) => (
           <div className="flex-shrink-0 w-full h-full relative" key={item.id}>
-             <div className="w-full h-full rounded-lg shadow-lg">
-                <StartupShortCard item={item} lang={lang} index={index} />
-             </div>
+            <StartupShortCard item={item} lang={lang} index={index} />
           </div>
         ))}
         {hasMore && (
-          <div className="flex-shrink-0 w-full h-full relative flex items-center justify-center">
+          <div className="flex-shrink-0 w-full h-full relative flex items-center justify-center bg-black">
             <Loader />
           </div>
         )}

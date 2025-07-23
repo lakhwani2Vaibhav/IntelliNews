@@ -11,7 +11,7 @@ import SuggestedTopics from '@/components/SuggestedTopics';
 import { Flame, Newspaper, Rocket, View, LayoutGrid, Rows3, Clapperboard } from 'lucide-react';
 import { generateTopicNews } from '@/ai/flows/generate-topic-news';
 import { generateSuggestedNews } from '@/ai/flows/generate-suggested-news';
-import { generateId } from '@/lib/utils';
+import { generateId, cn } from '@/lib/utils';
 import { Separator } from './ui/separator';
 import { Sparkles } from 'lucide-react';
 import NewsCard from './NewsCard';
@@ -390,6 +390,8 @@ function NewsExplorerContent() {
     }
   }
 
+  const isShortsView = isMobile && viewMode === 'shorts';
+
   return (
     <>
       <Sidebar>
@@ -447,23 +449,26 @@ function NewsExplorerContent() {
         </SidebarContent>
       </Sidebar>
       <SidebarInset>
-        <header className="sticky top-0 z-10 flex items-center justify-between p-4 bg-background/80 backdrop-blur-sm border-b">
+        <header className={cn(
+            "sticky top-0 z-10 flex items-center justify-between p-4 border-b",
+            isShortsView ? "bg-transparent border-transparent text-white" : "bg-background/80 backdrop-blur-sm"
+        )}>
           <div className="flex items-center gap-2 min-w-0">
-             <SidebarTrigger className="md:hidden" />
-             <h2 className="text-lg md:text-xl font-semibold text-foreground truncate">
+             <SidebarTrigger className={cn("md:hidden", isShortsView && "text-white hover:bg-white/20 hover:text-white")} />
+             <h2 className={cn("text-lg md:text-xl font-semibold truncate", isShortsView ? "text-white" : "text-foreground")}>
                 {getHeaderTitle()}
              </h2>
           </div>
           <div className="flex items-center gap-2">
             {isMobile && activeSection !== 'video' && (
-              <Button variant="ghost" size="icon" onClick={() => setViewMode(v => v === 'grid' ? 'shorts' : 'grid')}>
+              <Button variant="ghost" size="icon" onClick={() => setViewMode(v => v === 'grid' ? 'shorts' : 'grid')} className={cn(isShortsView && "text-white hover:bg-white/20 hover:text-white")}>
                 {viewMode === 'grid' ? <Rows3 /> : <LayoutGrid />}
               </Button>
             )}
             <LanguageSwitcher lang={lang} setLang={handleSetLang} />
           </div>
         </header>
-        <main className={viewMode === 'shorts' && isMobile ? 'h-[calc(100vh-65px)] p-4' : 'p-4 md:p-6'}>
+        <main className={cn(isShortsView ? 'h-screen w-screen absolute inset-0' : 'p-4 md:p-6')}>
           {renderContent()}
         </main>
       </SidebarInset>
