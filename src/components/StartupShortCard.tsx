@@ -18,7 +18,7 @@ type StartupShortCardProps = {
     index: number;
 }
 
-function NewsContent({ item, lang }: { item: StartupNewsData, lang: 'en' | 'hi' }) {
+function NewsContent({ item, lang, index }: { item: StartupNewsData, lang: 'en' | 'hi', index: number }) {
   const {
     title,
     imageUrl,
@@ -100,12 +100,19 @@ function NewsContent({ item, lang }: { item: StartupNewsData, lang: 'en' | 'hi' 
         <Button asChild variant="outline" size="sm" className="w-full bg-white/20 border-white/50 hover:bg-white/30 text-white">
           <a href={sourceUrl} target="_blank" rel="noopener noreferrer"><Globe className="mr-2 h-4 w-4" />Read Full Story</a>
         </Button>
+        
+        {index < 3 && (
+            <div className='flex flex-col items-center justify-center pt-6 text-sm opacity-60 animate-bounce'>
+                <ChevronUp className='w-6 h-6' />
+                <span>Swipe up</span>
+            </div>
+        )}
       </div>
     </div>
   )
 }
 
-function QuizContent({ item }: { item: StartupQuizData }) {
+function QuizContent({ item, index }: { item: StartupQuizData, index: number }) {
     const {
         promptText,
         options,
@@ -199,6 +206,12 @@ function QuizContent({ item }: { item: StartupQuizData }) {
                         <a href={link.url} target="_blank" rel="noopener noreferrer">Learn More</a>
                     </Button>
                 )}
+                 {index < 3 && (
+                    <div className='flex flex-col items-center justify-center pt-6 text-sm opacity-60 animate-bounce'>
+                        <ChevronUp className='w-6 h-6' />
+                        <span>Swipe up</span>
+                    </div>
+                )}
             </div>
         </div>
     )
@@ -207,14 +220,7 @@ function QuizContent({ item }: { item: StartupQuizData }) {
 export default function StartupShortCard({ item, lang, index }: StartupShortCardProps) {
   return (
     <div className="relative h-full w-full overflow-hidden rounded-lg flex flex-col justify-end text-white">
-        {item.type === 'NEWS' ? <NewsContent item={item.data} lang={lang} /> : <QuizContent item={item.data} />}
-        
-        {index < 3 && (
-            <div className='absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center justify-center pt-6 text-sm opacity-60 animate-bounce'>
-                <ChevronUp className='w-6 h-6' />
-                <span>Swipe up</span>
-            </div>
-        )}
+        {item.type === 'NEWS' ? <NewsContent item={item.data} lang={lang} index={index} /> : <QuizContent item={item.data} index={index} />}
     </div>
   );
 }
