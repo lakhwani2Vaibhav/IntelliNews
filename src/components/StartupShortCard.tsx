@@ -50,7 +50,7 @@ function NewsContent({ item, lang, index }: { item: StartupNewsData, lang: 'en' 
   const textToRead = `${title}. ${curatedText || ''}`;
   
   return (
-    <div className="relative h-full w-full overflow-hidden flex flex-col justify-end text-white">
+    <div className="relative h-full w-full overflow-hidden flex flex-col text-white">
       <img
         src={imgSrc}
         alt={title}
@@ -60,7 +60,7 @@ function NewsContent({ item, lang, index }: { item: StartupNewsData, lang: 'en' 
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent -z-10" />
 
-      <div className="p-4 space-y-4">
+      <div className="p-4 space-y-4 mt-auto">
          <div className="flex items-center gap-2">
             <TextToSpeech text={textToRead} lang={lang} />
         </div>
@@ -144,7 +144,7 @@ function QuizContent({ item, index }: { item: StartupQuizData, index: number }) 
     };
 
     return (
-        <div className="relative h-full w-full overflow-hidden flex flex-col justify-end text-white">
+        <div className="relative h-full w-full overflow-hidden flex flex-col text-white">
              {link?.imageUrl && (
                 <img
                     src={link.imageUrl}
@@ -155,7 +155,7 @@ function QuizContent({ item, index }: { item: StartupQuizData, index: number }) 
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent -z-10" />
 
-            <div className="p-4 space-y-3">
+            <div className="p-4 space-y-3 mt-auto">
                 <h2 className="text-2xl font-bold leading-tight">{promptText}</h2>
                 <div className="space-y-2">
                 {options.map((option, index) => {
