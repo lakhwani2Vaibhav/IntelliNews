@@ -6,10 +6,10 @@ export default function Footer() {
     <footer className="bg-background border-t">
       <div className="container mx-auto px-4 py-6">
         <div className="flex flex-col md:flex-row justify-between items-center">
-          <div className="flex items-center gap-2 mb-4 md:mb-0">
+          <Link href="/" className="flex items-center gap-2 mb-4 md:mb-0">
             <Image src="/Intelli News Logo.gif" alt="IntelliNews Logo" width={32} height={32} />
             <span className="text-lg font-semibold">IntelliNews</span>
-          </div>
+          </Link>
           <nav className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
             <Link href="/about" className="hover:text-primary transition-colors">About</Link>
             <Link href="/blog" className="hover:text-primary transition-colors">Blog</Link>
