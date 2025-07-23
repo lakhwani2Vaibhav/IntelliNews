@@ -25,8 +25,12 @@ export default function ShortsView({ news, isLoading, hasMore, onLoadMore, lang 
 
   const onSelect = useCallback(() => {
     if (!emblaApi) return;
-    const isLastSlide = emblaApi.selectedScrollSnap() === emblaApi.scrollSnapList().length - 1;
-    if (isLastSlide && hasMore) {
+    
+    const selectedIndex = emblaApi.selectedScrollSnap();
+    const totalSlides = emblaApi.scrollSnapList().length;
+    const threshold = Math.floor(totalSlides * 0.7);
+
+    if (selectedIndex >= threshold && hasMore) {
       onLoadMore();
     }
   }, [emblaApi, hasMore, onLoadMore]);

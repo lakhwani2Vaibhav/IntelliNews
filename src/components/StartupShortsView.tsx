@@ -31,7 +31,7 @@ export default function StartupShortsView({ fetchApi, lang }: StartupShortsViewP
     setIsLoading(true);
 
     try {
-        const segmentParam = isLoadMore && nextSegment ? `?nextSegment=${encodeURIComponent(nextSegment)}` : '';
+        const segmentParam = isLoadMore && nextSegment ? `?${nextSegment}` : '';
         const url = `/api/startup${segmentParam}`;
         
         const json: StartupApiResponse = await fetchApi(url);
@@ -60,9 +60,13 @@ export default function StartupShortsView({ fetchApi, lang }: StartupShortsViewP
   }, []);
 
   const onSelect = useCallback(() => {
-    if (!emblaApi) return;
-    const isLastSlide = emblaApi.selectedScrollSnap() === emblaApi.scrollSnapList().length - 1;
-    if (isLastSlide && hasMore && !isLoading) {
+    if (!emblaApi || isLoading) return;
+
+    const selectedIndex = emblaApi.selectedScrollSnap();
+    const totalSlides = emblaApi.scrollSnapList().length;
+    const threshold = Math.floor(totalSlides * 0.7);
+
+    if (selectedIndex >= threshold && hasMore) {
       fetchItems(true);
     }
   }, [emblaApi, hasMore, isLoading, fetchItems]);
@@ -104,5 +108,3 @@ export default function StartupShortsView({ fetchApi, lang }: StartupShortsViewP
     </div>
   );
 }
-
-    
