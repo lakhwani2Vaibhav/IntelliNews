@@ -34,7 +34,7 @@ export default function ArticleShortCard({ article }: { article: Article }) {
         src={imgSrc}
         alt={title}
         onError={handleImageError}
-        className="absolute inset-0 w-full h-full object-cover -z-10"
+        className="absolute inset-0 w-full h-full object-cover -z-10 animate-zoom-out"
         data-ai-hint="article feature background"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent -z-10" />
