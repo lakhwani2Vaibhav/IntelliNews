@@ -12,6 +12,7 @@ import { Globe, User, Calendar } from 'lucide-react';
 import { formatInTimeZone } from 'date-fns-tz';
 import { isValid } from 'date-fns';
 import TextToSpeech from './TextToSpeech';
+import { rewriteSourceUrl } from '@/lib/utils';
 
 export default function NewsCard({
   article,
@@ -48,6 +49,7 @@ export default function NewsCard({
   const formattedDate = formatInTimeZone(dateToFormat, 'Asia/Kolkata', 'yyyy-MM-dd');
 
   const textToRead = `${title}. ${content}`;
+  const finalSourceUrl = rewriteSourceUrl(source_url);
 
   return (
     <Card className="flex flex-col h-full overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
@@ -85,7 +87,7 @@ export default function NewsCard({
           size="sm"
           className="w-full bg-accent/20 hover:bg-accent/40 border-accent text-accent-foreground"
         >
-          <a href={source_url} target="_blank" rel="noopener noreferrer">
+          <a href={finalSourceUrl} target="_blank" rel="noopener noreferrer">
             <Globe className="mr-2 h-4 w-4" />
             Read More
           </a>

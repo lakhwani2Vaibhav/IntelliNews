@@ -5,6 +5,7 @@ import { Globe, User, Calendar, ChevronUp } from 'lucide-react';
 import { formatInTimeZone } from 'date-fns-tz';
 import { isValid } from 'date-fns';
 import TextToSpeech from './TextToSpeech';
+import { rewriteSourceUrl } from '@/lib/utils';
 
 export default function ShortCard({
   article,
@@ -38,6 +39,7 @@ export default function ShortCard({
   const formattedDate = formatInTimeZone(dateToFormat, 'Asia/Kolkata', 'yyyy-MM-dd');
 
   const textToRead = `${title}. ${content}`;
+  const finalSourceUrl = rewriteSourceUrl(source_url);
 
   return (
     <div className="relative h-full w-full overflow-hidden rounded-lg flex flex-col justify-end text-white">
@@ -73,7 +75,7 @@ export default function ShortCard({
           size="sm"
           className="w-full bg-white/20 border-white/50 hover:bg-white/30 text-white"
         >
-          <a href={source_url} target="_blank" rel="noopener noreferrer">
+          <a href={finalSourceUrl} target="_blank" rel="noopener noreferrer">
             <Globe className="mr-2 h-4 w-4" />
             Read More
           </a>
