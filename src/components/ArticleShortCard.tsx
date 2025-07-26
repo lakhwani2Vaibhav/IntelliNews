@@ -6,6 +6,7 @@ import type { Article } from '@/lib/article-types';
 import { Button } from '@/components/ui/button';
 import { Globe, User, Calendar, Heart, Bookmark, ChevronUp } from 'lucide-react';
 import { formatInTimeZone } from 'date-fns-tz';
+import { rewriteSourceUrl } from '@/lib/utils';
 
 export default function ArticleShortCard({ article }: { article: Article }) {
   const {
@@ -24,6 +25,8 @@ export default function ArticleShortCard({ article }: { article: Article }) {
   const handleImageError = () => {
     setImgSrc(`https://placehold.co/600x400.png`);
   };
+
+  const finalSourceUrl = rewriteSourceUrl(sourceUrl);
 
   return (
     <div className="relative h-full w-full overflow-hidden rounded-lg flex flex-col justify-end text-white">
@@ -67,7 +70,7 @@ export default function ArticleShortCard({ article }: { article: Article }) {
           size="sm"
           className="w-full bg-white/20 border-white/50 hover:bg-white/30 text-white"
         >
-          <a href={sourceUrl} target="_blank" rel="noopener noreferrer">
+          <a href={finalSourceUrl} target="_blank" rel="noopener noreferrer">
             <Globe className="mr-2 h-4 w-4" />
             Read Full Article
           </a>
@@ -81,5 +84,3 @@ export default function ArticleShortCard({ article }: { article: Article }) {
     </div>
   );
 }
-
-    

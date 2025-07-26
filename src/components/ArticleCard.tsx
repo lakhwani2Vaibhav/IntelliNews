@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -12,6 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Globe, User, Calendar, Heart, Bookmark } from 'lucide-react';
 import { formatInTimeZone } from 'date-fns-tz';
+import { rewriteSourceUrl } from '@/lib/utils';
 
 export default function ArticleCard({ article }: { article: Article }) {
   const {
@@ -31,6 +33,8 @@ export default function ArticleCard({ article }: { article: Article }) {
   const handleImageError = () => {
     setImgSrc(`https://placehold.co/600x400.png`);
   };
+
+  const finalSourceUrl = rewriteSourceUrl(sourceUrl);
 
   return (
     <Card className="flex flex-col h-full overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
@@ -77,7 +81,7 @@ export default function ArticleCard({ article }: { article: Article }) {
           size="sm"
           className="w-full bg-accent/20 hover:bg-accent/40 border-accent text-accent-foreground"
         >
-          <a href={sourceUrl} target="_blank" rel="noopener noreferrer">
+          <a href={finalSourceUrl} target="_blank" rel="noopener noreferrer">
             <Globe className="mr-2 h-4 w-4" />
             Read Full Article
           </a>
