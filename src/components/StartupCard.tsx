@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -14,7 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Globe, Calendar, Eye, ThumbsUp } from 'lucide-react';
 import { formatInTimeZone } from 'date-fns-tz';
 import { isValid } from 'date-fns';
-import { cn } from '@/lib/utils';
+import { cn, rewriteSourceUrl } from '@/lib/utils';
 import TextToSpeech from './TextToSpeech';
 
 export default function StartupCard({ item, lang }: { item: StartupNewsData, lang: 'en' | 'hi' }) {
@@ -48,6 +49,7 @@ export default function StartupCard({ item, lang }: { item: StartupNewsData, lan
   const hasLongText = curatedText && curatedText.length > 150;
 
   const textToRead = `${title}. ${curatedText || ''}`;
+  const finalSourceUrl = rewriteSourceUrl(sourceUrl);
 
   return (
     <Card className="flex flex-col h-full overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
@@ -114,7 +116,7 @@ export default function StartupCard({ item, lang }: { item: StartupNewsData, lan
           size="sm"
           className="w-full bg-accent/20 hover:bg-accent/40 border-accent text-accent-foreground"
         >
-          <a href={sourceUrl} target="_blank" rel="noopener noreferrer">
+          <a href={finalSourceUrl} target="_blank" rel="noopener noreferrer">
             <Globe className="mr-2 h-4 w-4" />
             Read Full Story
           </a>
@@ -123,5 +125,3 @@ export default function StartupCard({ item, lang }: { item: StartupNewsData, lan
     </Card>
   );
 }
-
-    

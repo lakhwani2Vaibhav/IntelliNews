@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -12,7 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Eye, ThumbsUp, CheckCircle2, XCircle, Award } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
-import { cn } from '@/lib/utils';
+import { cn, rewriteSourceUrl } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 
 export default function QuizCard({ item }: { item: StartupQuizData }) {
@@ -55,6 +56,8 @@ export default function QuizCard({ item }: { item: StartupQuizData }) {
     if (index === selectedOption) return 'incorrect';
     return 'default';
   };
+
+  const finalLearnMoreUrl = link?.url ? rewriteSourceUrl(link.url) : '#';
 
   return (
     <Card className="flex flex-col h-full overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
@@ -139,7 +142,7 @@ export default function QuizCard({ item }: { item: StartupQuizData }) {
                 size="sm"
                 className="w-full bg-accent/20 hover:bg-accent/40 border-accent text-accent-foreground"
             >
-                <a href={link.url} target="_blank" rel="noopener noreferrer">
+                <a href={finalLearnMoreUrl} target="_blank" rel="noopener noreferrer">
                     Learn More
                 </a>
           </Button>
