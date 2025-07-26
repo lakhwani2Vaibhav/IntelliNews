@@ -1,12 +1,11 @@
 
 "use client";
 
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
 import type { NewsArticle } from '@/lib/types';
 import ShortCard from './ShortCard';
 import { Loader } from '@/components/ui/loader';
-import { NewsCardSkeleton } from './NewsCardSkeleton';
 
 interface ShortsViewProps {
   news: NewsArticle[];
@@ -22,15 +21,16 @@ export default function ShortsView({ news, isLoading, hasMore, onLoadMore, lang 
     containScroll: false,
     align: 'start',
   });
+  const [selectedIndex, setSelectedIndex] = useState(0);
 
   const onSelect = useCallback(() => {
     if (!emblaApi || isLoading) return;
     
-    const selectedIndex = emblaApi.selectedScrollSnap();
+    setSelectedIndex(emblaApi.selectedScrollSnap());
     const totalSlides = emblaApi.scrollSnapList().length;
     const threshold = Math.floor(totalSlides * 0.7);
 
-    if (selectedIndex >= threshold && hasMore) {
+    if (emblaApi.selectedScrollSnap() >= threshold && hasMore) {
       onLoadMore();
     }
   }, [emblaApi, hasMore, onLoadMore, isLoading]);
@@ -38,6 +38,8 @@ export default function ShortsView({ news, isLoading, hasMore, onLoadMore, lang 
   useEffect(() => {
     if (!emblaApi) return;
     emblaApi.on('select', onSelect);
+    // Set initial index
+    onSelect();
     return () => {
       emblaApi.off('select', onSelect);
     };
@@ -58,9 +60,9 @@ export default function ShortsView({ news, isLoading, hasMore, onLoadMore, lang 
   return (
     <div className="overflow-hidden h-full w-full" ref={emblaRef}>
       <div className="flex flex-col h-full">
-        {news.map((article) => (
+        {news.map((article, index) => (
           <div className="flex-shrink-0 w-full h-full relative" key={article.hash_id}>
-            <ShortCard article={article} lang={lang} />
+            <ShortCard article={article} lang={lang} isActive={index === selectedIndex} />
           </div>
         ))}
         {hasMore && (

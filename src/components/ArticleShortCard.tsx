@@ -6,9 +6,9 @@ import type { Article } from '@/lib/article-types';
 import { Button } from '@/components/ui/button';
 import { Globe, User, Calendar, Heart, Bookmark, ChevronUp } from 'lucide-react';
 import { formatInTimeZone } from 'date-fns-tz';
-import { rewriteSourceUrl } from '@/lib/utils';
+import { rewriteSourceUrl, cn } from '@/lib/utils';
 
-export default function ArticleShortCard({ article }: { article: Article }) {
+export default function ArticleShortCard({ article, isActive }: { article: Article, isActive: boolean }) {
   const {
     title,
     imageUrl,
@@ -34,7 +34,10 @@ export default function ArticleShortCard({ article }: { article: Article }) {
         src={imgSrc}
         alt={title}
         onError={handleImageError}
-        className="absolute inset-0 w-full h-full object-cover -z-10 animate-zoom-out"
+        className={cn(
+            "absolute inset-0 w-full h-full object-cover -z-10",
+            isActive && "animate-zoom-out"
+        )}
         data-ai-hint="article feature background"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent -z-10" />

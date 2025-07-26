@@ -15,10 +15,10 @@ import { Progress } from '@/components/ui/progress';
 type StartupShortCardProps = {
     item: { type: 'NEWS', data: StartupNewsData } | { type: 'QUIZ', data: StartupQuizData };
     lang: 'en' | 'hi';
-    index: number;
+    isActive: boolean;
 }
 
-function NewsContent({ item, lang, index }: { item: StartupNewsData, lang: 'en' | 'hi', index: number }) {
+function NewsContent({ item, lang, isActive }: { item: StartupNewsData, lang: 'en' | 'hi', isActive: boolean }) {
   const {
     title,
     imageUrl,
@@ -55,7 +55,10 @@ function NewsContent({ item, lang, index }: { item: StartupNewsData, lang: 'en' 
         src={imgSrc}
         alt={title}
         onError={handleImageError}
-        className="absolute inset-0 w-full h-full object-cover -z-10 animate-zoom-out"
+        className={cn(
+            "absolute inset-0 w-full h-full object-cover -z-10",
+            isActive && "animate-zoom-out"
+        )}
         data-ai-hint="startup tech background"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent -z-10" />
@@ -110,7 +113,7 @@ function NewsContent({ item, lang, index }: { item: StartupNewsData, lang: 'en' 
   )
 }
 
-function QuizContent({ item, index }: { item: StartupQuizData, index: number }) {
+function QuizContent({ item, isActive }: { item: StartupQuizData, isActive: boolean }) {
     const {
         promptText,
         options,
@@ -147,7 +150,10 @@ function QuizContent({ item, index }: { item: StartupQuizData, index: number }) 
                 <img
                     src={link.imageUrl}
                     alt={link.title || 'Quiz Image'}
-                    className="absolute inset-0 w-full h-full object-cover -z-10 animate-zoom-out"
+                    className={cn(
+                        "absolute inset-0 w-full h-full object-cover -z-10",
+                        isActive && "animate-zoom-out"
+                    )}
                     data-ai-hint="quiz background"
                 />
             )}
@@ -213,10 +219,10 @@ function QuizContent({ item, index }: { item: StartupQuizData, index: number }) 
     )
 }
 
-export default function StartupShortCard({ item, lang, index }: StartupShortCardProps) {
+export default function StartupShortCard({ item, lang, isActive }: StartupShortCardProps) {
   return (
     <div className="relative h-full w-full overflow-hidden rounded-lg flex flex-col justify-end text-white">
-        {item.type === 'NEWS' ? <NewsContent item={item.data} lang={lang} index={index} /> : <QuizContent item={item.data} index={index} />}
+        {item.type === 'NEWS' ? <NewsContent item={item.data} lang={lang} isActive={isActive} /> : <QuizContent item={item.data} isActive={isActive} />}
     </div>
   );
 }

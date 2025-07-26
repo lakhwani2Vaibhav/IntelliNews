@@ -18,6 +18,8 @@ export default function ArticleShortsView({ fetchApi }: ArticleShortsViewProps) 
   const [nextSegment, setNextSegment] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const { toast } = useToast();
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
 
   const [emblaRef, emblaApi] = useEmblaCarousel({
     axis: 'y',
@@ -61,18 +63,20 @@ export default function ArticleShortsView({ fetchApi }: ArticleShortsViewProps) 
   const onSelect = useCallback(() => {
     if (!emblaApi || isLoading) return;
     
-    const selectedIndex = emblaApi.selectedScrollSnap();
+    setSelectedIndex(emblaApi.selectedScrollSnap());
     const totalSlides = emblaApi.scrollSnapList().length;
     const threshold = Math.floor(totalSlides * 0.7);
 
     if (selectedIndex >= threshold && hasMore) {
       fetchArticles(true);
     }
-  }, [emblaApi, hasMore, isLoading, fetchArticles]);
+  }, [emblaApi, hasMore, isLoading, fetchArticles, selectedIndex]);
 
   useEffect(() => {
     if (!emblaApi) return;
     emblaApi.on('select', onSelect);
+    // Set initial index
+    onSelect();
     return () => {
       emblaApi.off('select', onSelect);
     };
@@ -93,9 +97,9 @@ export default function ArticleShortsView({ fetchApi }: ArticleShortsViewProps) 
   return (
     <div className="overflow-hidden h-full w-full" ref={emblaRef}>
       <div className="flex flex-col h-full">
-        {articles.map((article) => (
+        {articles.map((article, index) => (
           <div className="flex-shrink-0 w-full h-full relative" key={article.id}>
-            <ArticleShortCard article={article} />
+            <ArticleShortCard article={article} isActive={index === selectedIndex} />
           </div>
         ))}
         {hasMore && (

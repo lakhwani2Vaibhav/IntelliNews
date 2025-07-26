@@ -5,14 +5,16 @@ import { Globe, User, Calendar, ChevronUp } from 'lucide-react';
 import { formatInTimeZone } from 'date-fns-tz';
 import { isValid } from 'date-fns';
 import TextToSpeech from './TextToSpeech';
-import { rewriteSourceUrl } from '@/lib/utils';
+import { rewriteSourceUrl, cn } from '@/lib/utils';
 
 export default function ShortCard({
   article,
   lang,
+  isActive,
 }: {
   article: NewsArticle;
   lang: 'en' | 'hi';
+  isActive: boolean;
 }) {
   const {
     title,
@@ -46,7 +48,10 @@ export default function ShortCard({
       <img
         src={image_url || `https://placehold.co/600x400.png`}
         alt={title}
-        className="absolute inset-0 w-full h-full object-cover -z-10 animate-zoom-out"
+        className={cn(
+            "absolute inset-0 w-full h-full object-cover -z-10",
+            isActive && "animate-zoom-out"
+        )}
         data-ai-hint="news background"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent -z-10" />

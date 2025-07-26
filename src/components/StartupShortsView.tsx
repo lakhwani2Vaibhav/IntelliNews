@@ -19,6 +19,7 @@ export default function StartupShortsView({ fetchApi, lang }: StartupShortsViewP
   const [nextSegment, setNextSegment] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const { toast } = useToast();
+  const [selectedIndex, setSelectedIndex] = useState(0);
 
   const [emblaRef, emblaApi] = useEmblaCarousel({
     axis: 'y',
@@ -62,11 +63,11 @@ export default function StartupShortsView({ fetchApi, lang }: StartupShortsViewP
   const onSelect = useCallback(() => {
     if (!emblaApi || isLoading) return;
 
-    const selectedIndex = emblaApi.selectedScrollSnap();
+    setSelectedIndex(emblaApi.selectedScrollSnap());
     const totalSlides = emblaApi.scrollSnapList().length;
     const threshold = Math.floor(totalSlides * 0.7);
 
-    if (selectedIndex >= threshold && hasMore) {
+    if (emblaApi.selectedScrollSnap() >= threshold && hasMore) {
       fetchItems(true);
     }
   }, [emblaApi, hasMore, isLoading, fetchItems]);
@@ -74,6 +75,7 @@ export default function StartupShortsView({ fetchApi, lang }: StartupShortsViewP
   useEffect(() => {
     if (!emblaApi) return;
     emblaApi.on('select', onSelect);
+    onSelect();
     return () => {
       emblaApi.off('select', onSelect);
     };
@@ -96,7 +98,7 @@ export default function StartupShortsView({ fetchApi, lang }: StartupShortsViewP
       <div className="flex flex-col h-full">
         {items.map((item, index) => (
           <div className="flex-shrink-0 w-full h-full relative" key={item.id}>
-            <StartupShortCard item={item} lang={lang} index={index} />
+            <StartupShortCard item={item} lang={lang} isActive={index === selectedIndex} />
           </div>
         ))}
         {hasMore && (
