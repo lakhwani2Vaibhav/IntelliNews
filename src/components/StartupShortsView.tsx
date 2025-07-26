@@ -16,6 +16,7 @@ interface StartupShortsViewProps {
 export default function StartupShortsView({ fetchApi, lang }: StartupShortsViewProps) {
   const [items, setItems] = useState<StartupItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [nextSegment, setNextSegment] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const { toast } = useToast();
@@ -29,7 +30,11 @@ export default function StartupShortsView({ fetchApi, lang }: StartupShortsViewP
 
   const fetchItems = useCallback(async (isLoadMore = false) => {
     if (!hasMore && isLoadMore) return;
-    setIsLoading(true);
+    if (isLoadMore) {
+        setIsLoadingMore(true);
+    } else {
+        setIsLoading(true);
+    }
 
     try {
         const segmentParam = isLoadMore && nextSegment ? `?nextSegment=${encodeURIComponent(nextSegment)}` : '';
@@ -52,6 +57,7 @@ export default function StartupShortsView({ fetchApi, lang }: StartupShortsViewP
         toast({ variant: 'destructive', title: 'Error', description: message });
     } finally {
         setIsLoading(false);
+        setIsLoadingMore(false);
     }
   }, [nextSegment, hasMore, toast, fetchApi]);
   
@@ -61,16 +67,18 @@ export default function StartupShortsView({ fetchApi, lang }: StartupShortsViewP
   }, []);
 
   const onSelect = useCallback(() => {
-    if (!emblaApi || isLoading) return;
+    if (!emblaApi || isLoadingMore) return;
 
     setSelectedIndex(emblaApi.selectedScrollSnap());
     const totalSlides = emblaApi.scrollSnapList().length;
     const threshold = Math.floor(totalSlides * 0.7);
 
     if (emblaApi.selectedScrollSnap() >= threshold && hasMore) {
-      fetchItems(true);
+       if (items.length > 0) { // Only load more if initial content is present
+          fetchItems(true);
+       }
     }
-  }, [emblaApi, hasMore, isLoading, fetchItems]);
+  }, [emblaApi, hasMore, isLoadingMore, fetchItems, items.length]);
 
   useEffect(() => {
     if (!emblaApi) return;

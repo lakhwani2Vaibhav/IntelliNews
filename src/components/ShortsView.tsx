@@ -28,12 +28,15 @@ export default function ShortsView({ news, isLoading, hasMore, onLoadMore, lang 
     
     setSelectedIndex(emblaApi.selectedScrollSnap());
     const totalSlides = emblaApi.scrollSnapList().length;
-    const threshold = Math.floor(totalSlides * 0.7);
+    // Load more when user is halfway through the current list
+    const threshold = Math.floor(totalSlides * 0.5);
 
     if (emblaApi.selectedScrollSnap() >= threshold && hasMore) {
-      onLoadMore();
+        if (news.length > 0) { // Only load more if initial content is present
+             onLoadMore();
+        }
     }
-  }, [emblaApi, hasMore, onLoadMore, isLoading]);
+  }, [emblaApi, hasMore, onLoadMore, isLoading, news.length]);
 
   useEffect(() => {
     if (!emblaApi) return;

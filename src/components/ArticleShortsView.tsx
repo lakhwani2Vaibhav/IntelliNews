@@ -15,6 +15,7 @@ interface ArticleShortsViewProps {
 export default function ArticleShortsView({ fetchApi }: ArticleShortsViewProps) {
   const [articles, setArticles] = useState<Article[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [nextSegment, setNextSegment] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const { toast } = useToast();
@@ -29,7 +30,12 @@ export default function ArticleShortsView({ fetchApi }: ArticleShortsViewProps) 
 
   const fetchArticles = useCallback(async (isLoadMore = false) => {
     if (!hasMore && isLoadMore) return;
-    setIsLoading(true);
+    
+    if (isLoadMore) {
+        setIsLoadingMore(true);
+    } else {
+        setIsLoading(true);
+    }
 
     try {
         const segmentParam = isLoadMore && nextSegment ? `?nextSegment=${encodeURIComponent(nextSegment)}` : '';
@@ -45,13 +51,14 @@ export default function ArticleShortsView({ fetchApi }: ArticleShortsViewProps) 
         
         setArticles(prev => isLoadMore ? [...prev, ...newArticles] : newArticles);
         setNextSegment(json.nextSegment || null);
-        setHasMore(!!json.nextSegment);
+        setHasMore(!!json.nextSegment && newArticles.length > 0);
 
     } catch (error) {
         const message = error instanceof Error ? error.message : 'Could not load articles.';
         toast({ variant: 'destructive', title: 'Error', description: message });
     } finally {
         setIsLoading(false);
+        setIsLoadingMore(false);
     }
   }, [nextSegment, hasMore, toast, fetchApi]);
   
@@ -61,16 +68,18 @@ export default function ArticleShortsView({ fetchApi }: ArticleShortsViewProps) 
   }, []);
 
   const onSelect = useCallback(() => {
-    if (!emblaApi || isLoading) return;
+    if (!emblaApi || isLoadingMore) return;
     
     setSelectedIndex(emblaApi.selectedScrollSnap());
     const totalSlides = emblaApi.scrollSnapList().length;
     const threshold = Math.floor(totalSlides * 0.7);
 
-    if (selectedIndex >= threshold && hasMore) {
-      fetchArticles(true);
+    if (emblaApi.selectedScrollSnap() >= threshold && hasMore) {
+        if (articles.length > 0) { // Only load more if initial content is present
+          fetchArticles(true);
+        }
     }
-  }, [emblaApi, hasMore, isLoading, fetchArticles, selectedIndex]);
+  }, [emblaApi, hasMore, isLoadingMore, fetchArticles, articles.length]);
 
   useEffect(() => {
     if (!emblaApi) return;
