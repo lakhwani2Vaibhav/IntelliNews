@@ -13,6 +13,7 @@ const poppins = Poppins({
 
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://www.intellinews.co.in'),
   title: 'IntelliNews: AI-Powered News, Curated For You',
   description: 'Welcome to intellinews.co.in, your premier source for AI-powered news. Get personalized summaries, explore trending topics, and experience the future of news consumption.',
   icons: {

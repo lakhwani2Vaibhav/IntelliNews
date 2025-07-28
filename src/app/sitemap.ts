@@ -1,9 +1,9 @@
 import { MetadataRoute } from 'next'
 import { blogPosts } from '@/lib/blog-posts';
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const siteUrl = 'https://www.intellinews.co.in';
+const siteUrl = 'https://www.intellinews.co.in';
 
+export default function sitemap(): MetadataRoute.Sitemap {
   // Static pages
   const staticRoutes: MetadataRoute.Sitemap = [
     {
